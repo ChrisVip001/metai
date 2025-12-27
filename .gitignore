@@ -1,0 +1,24 @@
+# Rust / Cargo
+target/
+**/*.rs.bk
+Cargo.lock
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Project Data & Artifacts
+*.txt
+*.json
+!tokenizer.json
+model_output/
+checkpoints/
+artifacts/
+/tmp/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
