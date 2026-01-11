@@ -1,10 +1,9 @@
-use clap::{Parser, Subcommand};
-use metai::train::train;
-use metai::infer::Generator;
-use metai::{MetaIConfig, MetaITokenizer};
-use burn::backend::wgpu::WgpuDevice;
-use burn::backend::Wgpu;
 use burn::module::Module;
+use clap::{Parser, Subcommand};
+use metai::backend::{get_device, MyBackend};
+use metai::infer::Generator;
+use metai::train::train;
+use metai::{MetaIConfig, MetaITokenizer};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -24,15 +23,7 @@ enum Commands {
         #[arg(short, long, default_value = "tokenizer.json")]
         tokenizer_path: String,
     },
-    /// 运行本地优化版训练 (适合 16GB 内存设备)
-    TrainLocal {
-        #[arg(short, long, default_value = "dataset_local_zh.txt")]
-        chinese_path: String,
-        #[arg(short, long, default_value = "dataset_local_en.txt")]
-        english_path: String,
-        #[arg(short, long, default_value = "tokenizer.json")]
-        tokenizer_path: String,
-    },
+
     /// 生成文本
     Generate {
         #[arg(short, long)]
@@ -49,6 +40,30 @@ enum Commands {
         top_k: usize,
         #[arg(short, long, default_value_t = 0.9)]
         top_p: f32,
+    },
+    /// 运行 SFT 指令微调
+    TrainSft {
+        /// JSONL 格式的指令数据
+        #[arg(short, long)]
+        data_path: String,
+        /// 预训练模型目录 (包含 checkpoint)
+        #[arg(short, long)]
+        model_dir: String,
+        /// 输出目录
+        #[arg(short, long, default_value = "/tmp/metai_sft")]
+        output_dir: String,
+    },
+    /// 运行 DPO 偏好对齐
+    TrainDpo {
+        /// JSONL 格式偏好数据 {"instruction":.., "chosen":.., "rejected":..}
+        #[arg(short, long)]
+        data_path: String,
+        /// SFT 模型目录 (作为 Policy 和 Reference 的初始权重)
+        #[arg(short, long)]
+        model_dir: String,
+        /// 输出目录
+        #[arg(short, long, default_value = "/tmp/metai_dpo")]
+        output_dir: String,
     },
     /// 对模型进行 INT4 量化压缩
     Quantize {
@@ -74,14 +89,6 @@ fn main() -> anyhow::Result<()> {
             println!("Starting MetaI Tiny Training...");
             train::run_tiny_test(&chinese_path, &english_path)?;
         }
-        Commands::TrainLocal {
-            chinese_path,
-            english_path,
-            tokenizer_path: _,
-        } => {
-            println!("Starting MetaI Local Optimization Training...");
-            train::run_local_training(&chinese_path, &english_path)?;
-        }
         Commands::Generate {
             prompt,
             tokenizer_path,
@@ -92,34 +99,46 @@ fn main() -> anyhow::Result<()> {
             top_p,
         } => {
             println!("正在加载模型和分词器...");
-            
+
             // 加载分词器
             let tokenizer = MetaITokenizer::new(&tokenizer_path)
                 .map_err(|e| anyhow::anyhow!("Failed to load tokenizer: {}", e))?;
-            
+
             // 确定模型配置（根据检查点目录推断，或使用默认配置）
             let config = if model_dir.contains("tiny") {
                 MetaIConfig::tiny()
             } else {
-                MetaIConfig::local_optimized()
+                MetaIConfig::small()
             };
-            
+
             // 创建设备
-            let device = WgpuDevice::default();
-            
+            let device = get_device();
+
             // 加载模型
-            let generator = Generator::<Wgpu>::from_checkpoint(
-                &model_dir,
-                config,
-                tokenizer,
-                &device,
-            )?;
-            
+            let generator =
+                Generator::<MyBackend>::from_checkpoint(&model_dir, config, tokenizer, &device)?;
+
             println!("生成中...");
             let output = generator.generate(&prompt, max_len, temperature, top_k, top_p);
-            
+
             println!("\n=== 生成结果 ===");
             println!("{}", output);
+        }
+        Commands::TrainSft {
+            data_path,
+            model_dir,
+            output_dir,
+        } => {
+            println!("Starting SFT Training...");
+            metai::train::sft::run_sft_training(&data_path, &model_dir, &output_dir)?;
+        }
+        Commands::TrainDpo {
+            data_path,
+            model_dir,
+            output_dir,
+        } => {
+            println!("Starting DPO Training...");
+            metai::train::dpo::run_dpo_training(&data_path, &model_dir, &output_dir)?;
         }
         Commands::Quantize {
             input_path,
@@ -127,25 +146,25 @@ fn main() -> anyhow::Result<()> {
             tokenizer_path,
         } => {
             println!("正在加载模型进行量化...");
-            
+
             // 加载分词器以获取配置
             let tokenizer = MetaITokenizer::new(&tokenizer_path)
                 .map_err(|e| anyhow::anyhow!("Failed to load tokenizer: {}", e))?;
-            
+
             // 确定模型配置
             let config = if input_path.contains("tiny") {
                 MetaIConfig::tiny()
             } else {
-                MetaIConfig::local_optimized()
+                MetaIConfig::small()
             };
-            
-            let device = WgpuDevice::default();
+
+            let device = get_device();
             let pad_id = tokenizer.pad_id().unwrap_or(0);
-            
+
             // 加载原始模型
             use burn::record::{BinFileRecorder, FullPrecisionSettings};
             use std::path::Path;
-            
+
             let checkpoint_dir = Path::new(&input_path).join("checkpoint");
             let mut max_epoch = 0;
             if let Ok(entries) = std::fs::read_dir(&checkpoint_dir) {
@@ -166,30 +185,34 @@ fn main() -> anyhow::Result<()> {
                     }
                 }
             }
-            
+
             if max_epoch == 0 {
                 anyhow::bail!("No checkpoint found in {:?}", checkpoint_dir);
             }
-            
-            let model: metai::MetaIModel<Wgpu> = metai::MetaIModel::new(&config, pad_id, &device);
+
+            let model: metai::MetaIModel<MyBackend> =
+                metai::MetaIModel::new(&config, pad_id, &device);
             let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
             let model_path = checkpoint_dir.join(format!("model-{}.bin", max_epoch));
-            
-            let model = model.load_file(&model_path, &recorder, &device)
+
+            let model = model
+                .load_file(&model_path, &recorder, &device)
                 .map_err(|e| anyhow::anyhow!("Failed to load model: {}", e))?;
-            
+
             println!("正在执行 INT4 量化...");
             let quantized_model = model.quantize_int4(&device);
-            
+
             // 保存量化后的模型
             std::fs::create_dir_all(&output_path)?;
             let output_checkpoint = Path::new(&output_path).join("checkpoint");
             std::fs::create_dir_all(&output_checkpoint)?;
-            let output_model_path = output_checkpoint.join(format!("model-{}-quantized.bin", max_epoch));
-            
-            quantized_model.save_file(&output_model_path, &recorder)
+            let output_model_path =
+                output_checkpoint.join(format!("model-{}-quantized.bin", max_epoch));
+
+            quantized_model
+                .save_file(&output_model_path, &recorder)
                 .map_err(|e| anyhow::anyhow!("Failed to save quantized model: {}", e))?;
-            
+
             println!("量化完成！模型已保存到: {:?}", output_model_path);
         }
     }

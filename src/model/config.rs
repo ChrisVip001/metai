@@ -31,22 +31,6 @@ impl MetaIConfig {
         }
     }
 
-    /// Local Device Optimized Config (e.g. M2/M3 Pro 16G)
-    pub fn local_optimized() -> Self {
-        Self {
-            vocab_size: 16000,
-            hidden_dim: 256, // 略微增加宽度
-            num_layers: 6,   // 略微增加深度
-            num_heads: 8,
-            num_kv_heads: 4,
-            mlp_dim: 680,
-            max_seq_len: 512, // 关键：降低上下文长度以节省显存
-            dropout: 0.1,
-            num_experts: 4, // 专家数减半，适配 16G 内存
-            active_experts: 2,
-        }
-    }
-
     /// 125M 参数规模 (MoE 增强版)
     /// 虽然总参数量增加，但推理/训练计算量保持在 125M Dense 级别，效果更优
     pub fn small() -> Self {
@@ -76,8 +60,8 @@ impl MetaIConfig {
             mlp_dim: 14336,    // SwiGLU hidden dim
             max_seq_len: 8192, // 长上下文
             dropout: 0.0,
-            num_experts: 1, // 保持 Dense 以适配 16G 内存
-            active_experts: 1,
+            num_experts: 8,
+            active_experts: 2,
         }
     }
 }

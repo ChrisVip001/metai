@@ -12,7 +12,7 @@
 
 ---
 
-MetaI 是一个基于 [Burn](https://github.com/tracel-ai/burn) 深度学习框架构建的高性能、轻量级大语言模型（LLM）训练与推理系统。项目采用 Rust 语言实现，充分利用现代 GPU 加速（WGPU/Metal/Vulkan），旨在在消费级硬件上实现完整的 LLM 训练和推理流程。
+MetaI 是一个基于 [Burn](https://github.com/tracel-ai/burn) 深度学习框架构建的高性能大语言模型（LLM）训练与推理系统。项目采用 Rust 语言实现，充分利用现代 GPU 加速（WGPU/Metal/Vulkan），旨在使用 Rust 和 Burn 实现完整的 LLM 训练和推理流程。
 
 ## ✨ 核心特性
 
@@ -23,7 +23,8 @@ MetaI 是一个基于 [Burn](https://github.com/tracel-ai/burn) 深度学习框�
 - **混合精度训练**: 优化内存使用，支持更大模型训练
 
 ### 🧠 先进架构
-- **Mixture of Experts (MoE)**: 支持 Sparse MoE 架构（8 专家 Top-2 激活），在保持低推理算力的同时大幅提升模型容量
+- **Mixture of Experts (MoE)**: 支持 **Sparse Execution (稀疏执行)** 的 MoE 架构。利用 Gather-Compute-Scatter 模式，仅计算路由选中的专家，推理计算量不再随专家数量增加而增加。
+- **SFT 指令微调**: 原生支持 Supervised Fine-Tuning，支持 JSONL 格式指令数据，实现了 Loss Masking 以屏蔽用户指令部分的 Loss。
 - **Llama 3 风格**: 集成 Grouped Query Attention (GQA)、RoPE 旋转位置编码、RMSNorm 和 SwiGLU 激活函数
 - **全链路 Padding Mask**: 实现 Loss Masking 和 Attention Masking，完美解决变长序列训练问题
 
@@ -120,6 +121,23 @@ cargo run --release -- quantize \
 
 量化后的模型可以显著减少内存占用（约 4 倍压缩），适合部署到资源受限的环境。
 
+### 6. DPO 对齐 (Direct Preference Optimization)
+
+在 SFT 之后，使用 DPO 根据人类偏好进一步对齐模型：
+
+```bash
+# 假设已经完成 SFT，模型保存在 output-sft/checkpoint/model-10.bin
+cargo run --release -- train-dpo \
+    --data data/dpo_data.jsonl \
+    --model-dir output-sft \
+    --output-dir output-dpo
+```
+
+数据格式 (JSONL):
+```json
+{"instruction": "What is AI?", "chosen": "AI is Artificial Intelligence...", "rejected": "AI is a robot that kills humans."}
+```
+
 ## 📚 命令参考
 
 ### 训练命令
@@ -141,21 +159,6 @@ cargo run --release -- train-tiny \
     -t tokenizer.json
 ```
 
-#### `train-local`
-
-运行针对 16GB 内存设备优化的训练配置，参数量约 200M。
-
-**参数：**
-- `-c, --chinese-path <PATH>`: 中文数据文件路径（默认: `dataset_local_zh.txt`）
-- `-e, --english-path <PATH>`: 英文数据文件路径（默认: `dataset_local_en.txt`）
-- `-t, --tokenizer-path <PATH>`: 分词器文件路径（默认: `tokenizer.json`）
-
-**示例：**
-```bash
-cargo run --release -- train-local \
-    -c dataset_local_zh.txt \
-    -e dataset_local_en.txt
-```
 
 ### 推理命令
 

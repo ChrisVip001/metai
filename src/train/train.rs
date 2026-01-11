@@ -1,6 +1,5 @@
-use burn::backend::wgpu::WgpuDevice;
+use crate::backend::{get_device, MyAutodiffBackend};
 use burn::backend::Autodiff;
-use burn::backend::Wgpu;
 use burn::data::dataloader::DataLoaderBuilder;
 use burn::tensor::backend::AutodiffBackend;
 use burn::train::metric::LossMetric;
@@ -89,7 +88,7 @@ pub fn train<B: AutodiffBackend>(
     Ok(())
 }
 
-fn find_latest_epoch(artifact_dir: &str) -> Option<usize> {
+pub fn find_latest_epoch(artifact_dir: &str) -> Option<usize> {
     let checkpoint_dir = std::path::Path::new(artifact_dir).join("checkpoint");
     if !checkpoint_dir.exists() {
         return None;
@@ -124,34 +123,12 @@ fn find_latest_epoch(artifact_dir: &str) -> Option<usize> {
 }
 
 pub fn run_tiny_test(chinese_path: &str, english_path: &str) -> anyhow::Result<()> {
-    let device = WgpuDevice::default();
+    let device = get_device();
     let config = MetaITrainingConfig {
         chinese_path: chinese_path.to_string(),
         english_path: english_path.to_string(),
         tokenizer_path: "tokenizer.json".to_string(),
         model: MetaIConfig::tiny(),
-        optimizer: burn::optim::AdamWConfig::new(),
-        batch_size: 16,
-        num_epochs: 50,
-        learning_rate: 1e-4,
-        seed: 42,
-        grads_accumulation: 1,
-    };
-
-    train::<Autodiff<Wgpu>>("/tmp/metai_tiny", config, device)?;
-    Ok(())
-}
-
-pub fn run_local_training(chinese_path: &str, english_path: &str) -> anyhow::Result<()> {
-    // 修复 WGPU Panic: 禁用 CubeCL 自动调优以避免 Metal Shared Memory 溢出 (40KB > 32KB)
-    std::env::set_var("CUBECL_AUTOTUNE", "0");
-
-    let device = WgpuDevice::default();
-    let config = MetaITrainingConfig {
-        chinese_path: chinese_path.to_string(),
-        english_path: english_path.to_string(),
-        tokenizer_path: "tokenizer.json".to_string(),
-        model: MetaIConfig::local_optimized(),
         optimizer: burn::optim::AdamWConfig::new(),
         batch_size: 4, // 物理 Batch=4, 显存占用极低
         num_epochs: 50,
@@ -160,13 +137,6 @@ pub fn run_local_training(chinese_path: &str, english_path: &str) -> anyhow::Res
         grads_accumulation: 8, // 累积 8 步 => 等效 Batch=32
     };
 
-    println!(">>> Local Optimized Training Enabled <<<");
-    println!("- CubeCL Autotune: DISABLED (Stability Mode)");
-    println!("- Sequence Length: 512");
-    println!("- Physical Batch: 4");
-    println!("- Gradient Accumulation: 8 (Effective Batch = 32)");
-    println!("- Experts: 4 (Active: 2)");
-
-    train::<Autodiff<Wgpu>>("/tmp/metai_local", config, device)?;
+    train::<MyAutodiffBackend>("/tmp/metai_tiny", config, device)?;
     Ok(())
 }

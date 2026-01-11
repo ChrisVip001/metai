@@ -3,9 +3,14 @@ name = "metai"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["wgpu"]
+wgpu = ["burn/wgpu"]
+cuda = ["burn/tch"]
+
 [dependencies]
 # Burn 框架核心
-burn = { version = "0.19.1", features = ["train", "wgpu", "vision"] }
+burn = { version = "0.19.1", features = ["train", "vision"] }
 burn-train = { version = "0.19.1" }
 burn-core = { version = "0.19.1" }
 burn-autodiff = { version = "0.19.1" }

@@ -100,4 +100,58 @@ impl<B: Backend> ValidStep<TextBatch<B>, MetaIOutput<B>> for MetaIModel<B> {
     }
 }
 
+use crate::data::sft::SFTBatch;
+
+// SFT 训练步
+impl<B: AutodiffBackend> TrainStep<SFTBatch<B>, MetaIOutput<B>> for MetaIModel<B> {
+    fn step(&self, batch: SFTBatch<B>) -> TrainOutput<MetaIOutput<B>> {
+        let logits = self.forward(batch.inputs, None, None);
+        let [batch_size, seq_len, vocab_size] = logits.dims();
+
+        let logits_flat = logits.reshape([batch_size * seq_len, vocab_size]);
+        let mut targets_flat = batch.targets.reshape([batch_size * seq_len]);
+        let mask_flat = batch.mask.reshape([batch_size * seq_len]);
+
+        // 应用 Mask: 将 mask=0 的位置的 target 设为 pad_id
+        // 这样 CrossEntropyLoss (配置了 ignore pad_id) 就会忽略这些位置
+        // mask 是 Int, 需转为 Bool, mask=0 => bool=true (需要被覆盖)，反之 false
+        // Wait: mask=1 is valid, mask=0 is ignore.
+        // So we want to fill where mask == 0.
+        let mask_bool = mask_flat.equal_elem(0);
+        targets_flat = targets_flat.mask_fill(mask_bool, self.pad_id as i32);
+
+        let loss = CrossEntropyLossConfig::new()
+            .with_pad_tokens(Some(vec![self.pad_id as usize]))
+            .init(&logits_flat.device())
+            .forward(logits_flat, targets_flat);
+
+        let grads = loss.backward();
+
+        TrainOutput::new(self, grads, MetaIOutput { loss })
+    }
+}
+
+impl<B: Backend> ValidStep<SFTBatch<B>, MetaIOutput<B>> for MetaIModel<B> {
+    fn step(&self, batch: SFTBatch<B>) -> MetaIOutput<B> {
+        let logits = self.forward(batch.inputs, None, None);
+        let [batch_size, seq_len, vocab_size] = logits.dims();
+
+        let logits_flat = logits.reshape([batch_size * seq_len, vocab_size]);
+        let mut targets_flat = batch.targets.reshape([batch_size * seq_len]);
+        let mask_flat = batch.mask.reshape([batch_size * seq_len]);
+
+        let mask_bool = mask_flat.equal_elem(0);
+        targets_flat = targets_flat.mask_fill(mask_bool, self.pad_id as i32);
+
+        let loss = CrossEntropyLossConfig::new()
+            .with_pad_tokens(Some(vec![self.pad_id as usize]))
+            .init(&logits_flat.device())
+            .forward(logits_flat, targets_flat);
+
+        MetaIOutput { loss }
+    }
+}
+
+pub mod dpo;
+pub mod sft;
 pub mod train;
