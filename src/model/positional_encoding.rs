@@ -42,6 +42,15 @@ impl<B: Backend> RoPE<B> {
 
     /// 应用 RoPE 旋转
     pub fn forward<const D: usize>(&self, x: Tensor<B, D>) -> Tensor<B, D> {
+        self.forward_with_offset(x, 0)
+    }
+
+    /// 应用 RoPE 旋转 (带偏移量，用于 Cache)
+    pub fn forward_with_offset<const D: usize>(
+        &self,
+        x: Tensor<B, D>,
+        offset: usize,
+    ) -> Tensor<B, D> {
         // x: [Batch, NumHeads, SeqLen, HeadDim]
         let dims = x.dims();
         let seq_len = dims[D - 2];
@@ -62,10 +71,10 @@ impl<B: Backend> RoPE<B> {
             .squeeze_dim(4);
 
         // 3. 获取当前长度的频率
-        let freqs = self
-            .freq_cis
-            .clone()
-            .slice([0..1, 0..1, 0..seq_len, 0..(head_dim / 2)]);
+        let freqs =
+            self.freq_cis
+                .clone()
+                .slice([0..1, 0..1, offset..offset + seq_len, 0..(head_dim / 2)]);
 
         let cos = freqs.clone().cos();
         let sin = freqs.sin();

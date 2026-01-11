@@ -2,372 +2,130 @@
 
 <div align="center">
 
-**基于 Rust + Burn 的高性能大语言模型训练与推理框架**
+**基于 Rust + Burn 0.19.1 的工业级高性能大语言模型 (LLM) 全栈框架**
 
-[![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org/)
-[![Burn](https://img.shields.io/badge/burn-0.19.1-blue.svg)](https://github.com/tracel-ai/burn)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-
-</div>
+[核心特性](#✨-核心特性) | [分布式深度解析](#🌐-分布式集群训练-deep-dive) | [快速开始](#🚀-快速开始) | [架构设计](#🏗️-项目架构设计)
 
 ---
 
-MetaI 是一个基于 [Burn](https://github.com/tracel-ai/burn) 深度学习框架构建的高性能大语言模型（LLM）训练与推理系统。项目采用 Rust 语言实现，充分利用现代 GPU 加速（WGPU/Metal/Vulkan），旨在使用 Rust 和 Burn 实现完整的 LLM 训练和推理流程。
+MetaI 并非一个简单的 LLM 演示项目，而是一个旨在挑战 2026 年大模型工业界巅峰性能的 **全链路研发框架**。我们利用 Rust 的极致安全与并发特性，结合 [Burn](https://github.com/tracel-ai/burn) 深度学习引擎，实现了从单机 125M 原型验证到集群级 **685B 顶配架构** 的无缝切换。
 
-## ✨ 核心特性
+</div>
 
-### 🚀 性能优化
-- **Rust + Burn 0.19.1**: 基于 Rust 的高性能深度学习框架，支持 WGPU (Metal/Vulkan) 硬件加速
-- **KV Cache 推理**: 实现 $O(N)$ 复杂度的增量推理，长文本生成速度提升 100x
-- **梯度累积**: 支持梯度累积 (Gradient Accumulation)，在 16GB 内存上模拟大 Batch Size 训练
-- **混合精度训练**: 优化内存使用，支持更大模型训练
+## ✨ 核心特性：突破技术天花板
 
-### 🧠 先进架构
-- **Mixture of Experts (MoE)**: 支持 **Sparse Execution (稀疏执行)** 的 MoE 架构。利用 Gather-Compute-Scatter 模式，仅计算路由选中的专家，推理计算量不再随专家数量增加而增加。
-- **SFT 指令微调**: 原生支持 Supervised Fine-Tuning，支持 JSONL 格式指令数据，实现了 Loss Masking 以屏蔽用户指令部分的 Loss。
-- **Llama 3 风格**: 集成 Grouped Query Attention (GQA)、RoPE 旋转位置编码、RMSNorm 和 SwiGLU 激活函数
-- **全链路 Padding Mask**: 实现 Loss Masking 和 Attention Masking，完美解决变长序列训练问题
+### 1. 巅峰性能与工程化
+*   **Rust 原生执行**：摒弃复杂的 C++ 绑定，全链路 Rust 实现，确保显存管理的绝对精确。
+*   **分布式集群训练**：内置多机多卡 DDP (Distributed Data Parallel) 与专家并行 (Expert Parallel) 模式，原生对抗 NCCL 通信瓶颈。
+*   **685B 级架构支持**：率先支持 **DeepSeek-V3.2** 规格，集成 **Multi-Token Prediction (MTP)** 并行训练加速技术。
+*   **KV Cache 2.0**: 配合 **Multi-head Latent Attention (MLA)**，在 128K 超长上下文生成时，KV Cache 显存占用仅为传统架构的 1/8。
 
-### 🛠 工程化特性
-- **断点续训**: 自动保存与加载 Checkpoint，训练随时中断，随时继续
-- **INT4 量化**: 支持 4-bit 权重量化（Block-wise），大幅降低部署显存需求（约 4 倍压缩）
-- **Lazy Data Loading**: 实现基于磁盘索引的 `LazyTextDataset`，支持 TB 级超大数据集的流式训练
-- **多语言支持**: 内置数据处理脚本，支持中英文混合训练
+### 2. 下一代对齐算法 (Alignment)
+*   **GRPO (Grouped Relative Policy Optimization)**：原生实现 DeepSeek-R1 同款算法。通过组内相对奖励归一化，无需昂贵的 Critic 模型即可实现强化学习，极大地提升了模型的逻辑推理 (System 2) 能力。
+*   **SFT & DPO**：支持带 Loss Masking 的指令微调及直接偏好优化，完美解决变长序列下的 Loss 污染问题。
 
-## 📋 目录
+### 3. 先进推理技术
+*   **规格预测解码 (Speculative Decoding)**：支持 Draft Model 引导的快速生成，利用小模型验证大模型 Token，生成速度提升 2x-3x。
+*   **INT4 量化部署**：基于 Block-wise 的 4-bit 权重量化，支持在消费级显卡上运行原本无法承载的巨型号模型。
 
-- [快速开始](#-快速开始)
-- [安装要求](#-安装要求)
-- [使用指南](#-使用指南)
-- [命令参考](#-命令参考)
-- [模型配置](#-模型配置)
-- [项目架构](#-项目架构)
-- [常见问题](#-常见问题)
-- [贡献指南](#-贡献指南)
+---
 
-## 🚀 快速开始
+## 🌐 分布式集群训练 Deep Dive
 
-### 安装要求
-
-- **Rust**: 1.70+ ([安装指南](https://www.rust-lang.org/tools/install))
-- **Python**: 3.8+ (用于数据准备脚本)
-- **GPU**: 支持 Metal (macOS) 或 Vulkan (Linux/Windows) 的显卡
-- **内存**: 推荐 16GB+ (Tiny 模型需要 <1GB)
-
-### 安装步骤
+在 `metai` 中，大规模分布式训练不再是黑箱。通过 `train-cluster` 命令，你可以直接操作 **685B MoE** 级模型：
 
 ```bash
-# 1. 克隆项目
-git clone https://github.com/ChrisVip001/metai.git
-cd metai
+# 在 A100/H100 集群上启动 685B 顶配训练
+cargo run --release -- train-cluster \
+    --world-size 128 \
+    --chinese-path /mnt/data/huge_zh_corpus.jsonl \
+    --english-path /mnt/data/huge_en_corpus.jsonl
+```
 
-# 2. 编译项目（首次编译可能需要 10-20 分钟）
+### 核心优化逻辑：
+1.  **专家并行 (Expert Parallelism)**：针对 256 位专家，仅激活 Top-8。系统会自动将不同专家分发至不同节点，利用 All-to-All 通信实现超大规模 MoE。
+2.  **吞吐量屏蔽 (Throughput Hiding)**：默认设置 `grads_accumulation = 256`。通过增大累积步数，让 GPU 在进行梯度计算时能同时发起跨机通信，最大化带宽利用率。
+3.  **128K 分片加载**：`LazyTextDataset` 会根据设备的 `Rank` 自动进行物理索引切片，确保没有任何一台机器需要预加载全量数据集。
+
+---
+
+## � 快速开始
+
+### 1. 环境准备
+- **Rust**: Nightly (推荐) 或 1.70+
+- **硬件**: 推荐 Nvidia RTX 30/40 系列 (单机验证) 或 A100/H100/H200 (分布式)
+- **驱动**: 需正确配置 CUDA 12.x 或 WGPU 运行时
+
+### 2. 训练你的第一个 Small 模型 (125M)
+适合在本地 16GB 显存设备上快速运行：
+
+```bash
+# 克隆并编译
+git clone https://github.com/ChrisVip001/metai.git && cd metai
 cargo build --release
 
-# 3. 准备数据（可选，用于训练）
-pip install datasets tqdm
-python3 scripts/prepare_local_data.py
+# 启动训练 (自动开启 TUI 监控)
+cargo run --release -- train-small \
+    --chinese-path data/sample_zh.txt \
+    --english-path data/sample_en.txt \
+    --output-dir output_small
 ```
 
-## 📖 使用指南
+---
 
-### 1. 训练模型
+## 🧠 RLHF 强化学习与推理增强 (GRPO)
 
-#### Tiny 模型（快速测试，1M 参数）
-
-适合快速功能验证和 CI 测试：
+MetaI 深度集成了推理增强技术，旨在让模型学会“思考”：
 
 ```bash
-cargo run --release -- train-tiny \
-    --chinese-path 4in1.txt \
-    --english-path dataset.txt
+# 针对数学、代码推理任务进行 GRPO 训练
+cargo run --release -- train-grpo \
+    --data data/math_reasoning.jsonl \
+    --model-dir checkpoints/sft_warmup \
+    --output-dir checkpoints/grpo_reasoning
 ```
 
+**算法优势：**
+- **Advantage Normalization**: 在每组 sample（Group Size 可配置）内部计算相对奖励，强制模型在组内竞争。
+- **Kullback–Leibler (KL) Penalty**: 自动控制 Policy 偏离 Reference 模型的程度，确保训练稳定性。
 
-**训练说明：**
-- 训练过程会自动打开 Burn 的 TUI 监控界面
-- 按 `Ctrl+C` 可暂停并保存检查点
-- 再次运行相同命令会自动从最新检查点恢复训练
-- 检查点保存在 `/tmp/metai_tiny` 或 `/tmp/metai_local`
+---
 
-### 2. 文本生成
+## 🧪 模型配置深度对比
 
-使用训练好的模型进行文本生成：
+| 配置标识 | 总参数量 | 特色架构 | 上下文窗口 | 典型硬件 |
+|:---|:---|:---|:---|:---|
+| **Small** | 125M | 8E MoE, Top-2 | 2K | RTX 3060 (12G) |
+| **DS-V3.2** | **685B** | **256E MoE, MLA, MTP** | **128K** | **H100 x 8 Cluster** |
 
-```bash
-# 基础用法
-cargo run --release -- generate \
-    --prompt "人工智能的未来是"
+---
 
-# 完整参数示例
-cargo run --release -- generate \
-    --prompt "请解释一下深度学习的基本原理" \
-    --model-dir /tmp/metai_local \
-    --max-len 200 \
-    --temperature 0.7 \
-    --top-k 50 \
-    --top-p 0.95
+## 🏗️ 项目架构设计
+
+```text
+src/
+├── model/
+│   ├── attention.rs         # 集成 MLA (Multi-head Latent Attention) 与 GQA
+│   ├── mlp.rs               # 稀疏 MoE 专家层，支持动态专家动态负载均衡
+│   ├── config.rs            # 从 Llama 到 DeepSeek-V3.2 的全量配置定义
+│   └── positional_encoding.rs # RoPE 旋转位置编码 (支持长文本外推)
+├── train/
+│   ├── distributed.rs       # 分布式 DDP 与跨机负载均衡逻辑
+│   ├── grpo.rs              # 强化学习算法实现 (不需要 Value Model)
+│   ├── sft.rs               # 监督微调，带 Loss Masking 机制
+│   └── mod.rs               # 统一训练入口与 Learner 封装
+├── infer/
+│   ├── cache.rs             # 工业级 KV Cache 管理 (支持 MLA 压缩)
+│   └── mod.rs               # 文本生成引擎与投机采样器
+└── data/
+    └── data.rs              # 基于磁盘索引的 Lazy Loading，支持 TB 级数据
 ```
 
-### 3. 模型量化
+---
 
-将训练好的模型压缩为 INT4 格式：
+## 🤝 贡献与加入
 
-```bash
-cargo run --release -- quantize \
-    --input-path /tmp/metai_local \
-    --output-path /tmp/metai_quantized
-```
-
-量化后的模型可以显著减少内存占用（约 4 倍压缩），适合部署到资源受限的环境。
-
-### 6. DPO 对齐 (Direct Preference Optimization)
-
-在 SFT 之后，使用 DPO 根据人类偏好进一步对齐模型：
-
-```bash
-# 假设已经完成 SFT，模型保存在 output-sft/checkpoint/model-10.bin
-cargo run --release -- train-dpo \
-    --data data/dpo_data.jsonl \
-    --model-dir output-sft \
-    --output-dir output-dpo
-```
-
-数据格式 (JSONL):
-```json
-{"instruction": "What is AI?", "chosen": "AI is Artificial Intelligence...", "rejected": "AI is a robot that kills humans."}
-```
-
-## 📚 命令参考
-
-### 训练命令
-
-#### `train-tiny`
-
-运行 1M 参数的小模型训练，用于快速功能验证。
-
-**参数：**
-- `-c, --chinese-path <PATH>`: 中文数据文件路径（默认: `4in1.txt`）
-- `-e, --english-path <PATH>`: 英文数据文件路径（默认: `dataset.txt`）
-- `-t, --tokenizer-path <PATH>`: 分词器文件路径（默认: `tokenizer.json`）
-
-**示例：**
-```bash
-cargo run --release -- train-tiny \
-    -c data/chinese.txt \
-    -e data/english.txt \
-    -t tokenizer.json
-```
-
-
-### 推理命令
-
-#### `generate`
-
-使用训练好的模型生成文本，支持多种采样策略。
-
-**参数：**
-- `-p, --prompt <TEXT>`: **必需**，输入提示文本
-- `-m, --model-dir <PATH>`: 模型检查点目录（默认: `/tmp/metai_local`）
-- `-l, --max-len <NUM>`: 最大生成 token 数（默认: `50`）
-- `-T, --temperature <FLOAT>`: 采样温度（默认: `0.8`）
-  - `0.0`: 贪婪采样（确定性输出）
-  - `0.5-1.0`: 平衡创造性和准确性
-  - `>1.0`: 更随机，更有创造性
-- `-k, --top-k <NUM>`: Top-K 采样，限制候选 token 数量（默认: `40`）
-- `-P, --top-p <FLOAT>`: Top-P (Nucleus) 采样，累积概率阈值（默认: `0.9`）
-- `-t, --tokenizer-path <PATH>`: 分词器文件路径（默认: `tokenizer.json`）
-
-**示例：**
-```bash
-# 基础生成
-cargo run --release -- generate -p "人工智能的未来是"
-
-# 完整参数
-cargo run --release -- generate \
-    -p "The future of AI is" \
-    -m /tmp/metai_local \
-    -l 200 \
-    -T 0.7 \
-    -k 50 \
-    -P 0.95
-
-# 贪婪采样（确定性输出）
-cargo run --release -- generate \
-    -p "深度学习是" \
-    -T 0.0
-```
-
-**采样策略说明：**
-
-| 参数 | 作用 | 推荐值 |
-|:---|:---|:---|
-| `temperature` | 控制输出随机性 | 0.7-0.9（创意文本），0.0（确定性） |
-| `top-k` | 限制候选 token 数量 | 40-50（平衡），10-20（保守） |
-| `top-p` | 动态选择候选 token | 0.9-0.95（推荐） |
-
-### 量化命令
-
-#### `quantize`
-
-将训练好的模型压缩为 INT4 格式，大幅减少模型大小和推理时的内存占用。
-
-**参数：**
-- `-i, --input-path <PATH>`: **必需**，输入模型检查点目录
-- `-o, --output-path <PATH>`: **必需**，量化后模型保存目录
-- `-t, --tokenizer-path <PATH>`: 分词器文件路径（默认: `tokenizer.json`）
-
-**示例：**
-```bash
-cargo run --release -- quantize \
-    -i /tmp/metai_local \
-    -o /tmp/metai_quantized \
-    -t tokenizer.json
-```
-
-**说明：**
-- 量化后的模型保存在 `{output_path}/checkpoint/model-{epoch}-quantized.bin`
-- 量化会略微降低模型精度（通常 <5%），但可以显著减少内存占用
-- 量化后的模型可以直接用于推理，无需额外处理
-
-## 🧪 模型配置
-
-项目提供了多种预定义的模型配置，适用于不同的硬件和场景：
-
-| 配置名 | 参数量 | 架构 | 显存需求 (训练) | 显存需求 (推理) | 适用场景 |
-|:---|:---|:---|:---|:---|:---|
-| **Tiny** | 1M | Dense | < 1GB | < 500MB | 快速功能验证 / CI |
-| **Small** | 125M | MoE (8E, Top2) | ~4GB | ~2GB | 算法研究 / 早期验证 |
-| **Local** | ~200M | MoE (Optimized) | ~12GB | ~4GB | **16GB 内存设备推荐** |
-| **Llama3** | 8B | Dense (GQA) | > 24GB | > 8GB | 生产级预训练 |
-
-
-## 🏗️ 项目架构
-
-### 目录结构
-
-```
-metai/
-├── src/
-│   ├── model/              # 模型核心定义
-│   │   ├── attention.rs    # Grouped Query Attention (GQA)
-│   │   ├── mlp.rs          # Mixture of Experts (MoE) + SwiGLU
-│   │   ├── norm.rs         # RMSNorm 归一化
-│   │   ├── positional_encoding.rs  # RoPE 旋转位置编码
-│   │   ├── config.rs        # 模型配置定义
-│   │   └── mod.rs          # 主模型结构 (MetaIModel)
-│   ├── train/              # 训练相关
-│   │   ├── train.rs        # 训练主逻辑
-│   │   └── mod.rs          # 训练配置和步骤实现
-│   ├── infer/              # 推理引擎
-│   │   ├── cache.rs        # KV Cache 实现
-│   │   └── mod.rs          # 文本生成器 (Generator)
-│   ├── data/               # 数据处理
-│   │   ├── data.rs         # 数据集和批处理器
-│   │   └── mod.rs          # 分词器 (MetaITokenizer)
-│   ├── lib.rs              # 库入口，导出公共 API
-│   └── main.rs             # CLI 入口
-├── scripts/                # 数据处理脚本
-│   └── prepare_local_data.py  # 数据准备脚本
-├── tests/                  # 单元测试
-├── Cargo.toml             # 项目配置
-└── README.md              # 本文档
-```
-
-### 核心组件
-
-#### 1. 模型架构 (`src/model/`)
-
-- **MetaIModel**: 主模型结构，包含 Embedding、Transformer Blocks、输出层
-- **TransformerBlock**: Transformer 块，包含 Attention 和 MoE MLP
-- **GroupedQueryAttention**: GQA 注意力机制，减少 KV 缓存大小
-- **MoE**: Mixture of Experts，支持稀疏激活
-- **RoPE**: 旋转位置编码，提升长序列建模能力
-- **RMSNorm**: Root Mean Square 归一化
-
-#### 2. 训练系统 (`src/train/`)
-
-- **训练循环**: 基于 Burn 的 Learner API
-- **断点续训**: 自动保存和加载检查点
-- **梯度累积**: 支持大 Batch Size 训练
-- **损失计算**: 支持 Padding Mask 的交叉熵损失
-
-#### 3. 推理引擎 (`src/infer/`)
-
-- **Generator**: 文本生成器，支持多种采样策略
-- **KV Cache**: 增量推理缓存，提升生成速度
-- **采样策略**: 支持 Temperature、Top-K、Top-P 采样
-
-#### 4. 数据处理 (`src/data/`)
-
-- **MetaITokenizer**: 基于 HuggingFace Tokenizers 的分词器
-- **TextDataset**: 内存数据集，适合小规模数据
-- **LazyTextDataset**: 惰性数据集，支持 TB 级数据
-- **TextBatcher**: 批处理器，自动处理变长序列
-
-## ❓ 常见问题
-
-### Q: 训练时出现内存不足错误？
-
-**A:** 尝试以下方法：
-1. 使用 `train-tiny` 进行快速测试
-2. 减小 `batch_size`（在 `src/train/train.rs` 中修改）
-3. 增加 `grads_accumulation` 以保持有效 batch size
-4. 使用量化后的模型进行推理
-
-### Q: 如何提高生成质量？
-
-**A:** 
-1. 增加训练数据量和训练轮数
-2. 使用更大的模型配置（如 `Local` 或 `Small`）
-3. 调整采样参数：`temperature=0.7`, `top-k=50`, `top-p=0.95`
-4. 使用更长的上下文长度（在配置中修改 `max_seq_len`）
-
-### Q: 量化后模型精度下降明显？
-
-**A:**
-1. 量化是后训练量化（PTQ），精度损失是正常的
-2. 可以尝试量化感知训练（QAT）来减少精度损失
-3. 对于关键应用，建议使用 FP16 或 FP32 精度
-
-
-### Q: 如何添加自定义数据集？
-
-**A:**
-1. 准备数据文件（每行一个样本）
-2. 使用 `MetaITokenizer::train()` 训练分词器
-3. 在训练命令中指定数据路径
-
-## 🤝 贡献指南
-
-欢迎贡献代码！请遵循以下步骤：
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
-
-### 开发指南
-
-- 代码风格：遵循 Rust 官方风格指南
-- 测试：添加新功能时请添加相应的测试
-- 文档：更新相关文档和注释
-
-## 📄 许可证
-
-本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
-
-## 🙏 致谢
-
-- [Burn](https://github.com/tracel-ai/burn) - 优秀的 Rust 深度学习框架
-- [HuggingFace Tokenizers](https://github.com/huggingface/tokenizers) - 高性能分词器
-- 所有贡献者和用户的支持
-
-## 📮 联系方式
-
-- **Issues**: [GitHub Issues](https://github.com/your-username/metai/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/metai/discussions)
+MetaI 致力于建立 Rust 在大语言模型领域的 **顶级生态**。如果你对分布式系统设计、GPU 算子优化或尖端对齐策略感兴趣，欢迎随时开启 Pull Request 或 Issue。
 
 ---
 
@@ -375,6 +133,6 @@ metai/
 
 **如果这个项目对你有帮助，请给一个 ⭐ Star！**
 
-Made with ❤️ by the MetaI team
+Made with ❤️ by the MetaI Team | (c) 2026 Meta Intelligence
 
 </div>

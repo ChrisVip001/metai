@@ -1,5 +1,3 @@
-use burn::tensor::backend::AutodiffBackend;
-
 #[cfg(feature = "wgpu")]
 mod wgpu_backend {
     use burn::backend::wgpu::{Wgpu, WgpuDevice};

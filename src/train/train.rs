@@ -1,5 +1,4 @@
 use crate::backend::{get_device, MyAutodiffBackend};
-use burn::backend::Autodiff;
 use burn::data::dataloader::DataLoaderBuilder;
 use burn::tensor::backend::AutodiffBackend;
 use burn::train::metric::LossMetric;
@@ -122,21 +121,25 @@ pub fn find_latest_epoch(artifact_dir: &str) -> Option<usize> {
     }
 }
 
-pub fn run_tiny_test(chinese_path: &str, english_path: &str) -> anyhow::Result<()> {
+pub fn run_small_training(
+    chinese_path: &str,
+    english_path: &str,
+    output_dir: &str,
+) -> anyhow::Result<()> {
     let device = get_device();
     let config = MetaITrainingConfig {
         chinese_path: chinese_path.to_string(),
         english_path: english_path.to_string(),
         tokenizer_path: "tokenizer.json".to_string(),
-        model: MetaIConfig::tiny(),
+        model: MetaIConfig::small(),
         optimizer: burn::optim::AdamWConfig::new(),
-        batch_size: 4, // 物理 Batch=4, 显存占用极低
-        num_epochs: 50,
-        learning_rate: 1e-4,
+        batch_size: 2, // 125M 模型物理 Batch 较小，依赖累积
+        num_epochs: 20,
+        learning_rate: 2e-4,
         seed: 42,
-        grads_accumulation: 8, // 累积 8 步 => 等效 Batch=32
+        grads_accumulation: 16, // 等效 Batch=32
     };
 
-    train::<MyAutodiffBackend>("/tmp/metai_tiny", config, device)?;
+    train::<MyAutodiffBackend>(output_dir, config, device)?;
     Ok(())
 }

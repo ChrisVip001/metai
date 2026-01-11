@@ -6,7 +6,7 @@ use metai::model::MetaIModel;
 #[test]
 fn test_model_forward() {
     let device = WgpuDevice::default();
-    let config = MetaIConfig::tiny();
+    let config = MetaIConfig::small();
     let model = MetaIModel::<Wgpu>::new(&config, 0, &device);
 
     let tokens = burn::tensor::Tensor::<Wgpu, 2, burn::tensor::Int>::from_data(

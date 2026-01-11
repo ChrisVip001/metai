@@ -1,7 +1,7 @@
-use burn::tensor::backend::Backend;
-use burn::tensor::{Int, Tensor};
-use burn::record::{BinFileRecorder, FullPrecisionSettings};
 use burn::module::Module;
+use burn::record::{BinFileRecorder, FullPrecisionSettings};
+use burn::tensor::backend::Backend;
+use burn::tensor::{ElementConversion, Int, Tensor};
 
 use crate::data::MetaITokenizer;
 use crate::model::{MetaIConfig, MetaIModel};
@@ -9,7 +9,7 @@ use crate::model::{MetaIConfig, MetaIModel};
 pub mod cache;
 
 /// 文本生成器
-/// 
+///
 /// 封装了模型和分词器，提供了便捷的文本生成接口。
 /// 支持 KV Cache 加速、温度采样、Top-K 和 Top-P 采样策略。
 pub struct Generator<B: Backend> {
@@ -31,7 +31,7 @@ impl<B: Backend> Generator<B> {
         device: &B::Device,
     ) -> anyhow::Result<Self> {
         use std::path::Path;
-        
+
         let checkpoint_dir = Path::new(artifact_dir).join("checkpoint");
         if !checkpoint_dir.exists() {
             anyhow::bail!("Checkpoint directory not found: {:?}", checkpoint_dir);
@@ -64,26 +64,27 @@ impl<B: Backend> Generator<B> {
 
         let pad_id = tokenizer.pad_id().unwrap_or(0);
         let model = MetaIModel::new(&config, pad_id, device);
-        
+
         let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
         let model_path = checkpoint_dir.join(format!("model-{}.bin", max_epoch));
-        
+
         // 加载模型权重
-        let model = model.load_file(&model_path, &recorder, device)
+        let model = model
+            .load_file(&model_path, &recorder, device)
             .map_err(|e| anyhow::anyhow!("Failed to load model: {}", e))?;
 
         Ok(Self { model, tokenizer })
     }
 
     /// 生成文本
-    /// 
+    ///
     /// # 参数
     /// - `prompt`: 输入提示文本
     /// - `max_new_tokens`: 最大生成 token 数
     /// - `temperature`: 采样温度，0.0 表示贪婪采样，>0.0 表示随机采样
     /// - `top_k`: Top-K 采样，只从概率最高的 K 个 token 中采样
     /// - `top_p`: Top-P (Nucleus) 采样，只从累积概率达到 P 的 token 中采样
-    /// 
+    ///
     /// # 返回
     /// 生成的完整文本（包含 prompt）
     pub fn generate(
@@ -204,3 +205,160 @@ impl<B: Backend> Generator<B> {
         self.tokenizer.decode(&output_ids)
     }
 }
+
+/// 支持投机采样 (Speculative Decoding) 的生成器
+pub struct SpeculativeGenerator<B: Backend> {
+    draft_model: MetaIModel<B>,
+    target_model: MetaIModel<B>,
+    tokenizer: MetaITokenizer,
+}
+
+impl<B: Backend> SpeculativeGenerator<B> {
+    pub fn new(
+        draft_model: MetaIModel<B>,
+        target_model: MetaIModel<B>,
+        tokenizer: MetaITokenizer,
+    ) -> Self {
+        Self {
+            draft_model,
+            target_model,
+            tokenizer,
+        }
+    }
+
+    /// 应用投机采样生成文本
+    pub fn generate(
+        &self,
+        prompt: &str,
+        max_new_tokens: usize,
+        lookahead: usize, // K: 投机步数
+        temperature: f32,
+    ) -> String {
+        let device = self.target_model.embedding.weight.device();
+        let tokens_ids = self.tokenizer.encode(prompt);
+        let mut output_ids = tokens_ids.clone();
+
+        let mut draft_cache = cache::ModelCache::new(self.draft_model.blocks.len());
+        let mut target_cache = cache::ModelCache::new(self.target_model.blocks.len());
+
+        // 1. Prefill
+        let input = Tensor::<B, 2, Int>::from_data(
+            burn::tensor::TensorData::new(
+                tokens_ids.iter().map(|&x| x as i32).collect::<Vec<_>>(),
+                [1, tokens_ids.len()],
+            ),
+            &device,
+        );
+        let _ = self
+            .draft_model
+            .forward(input.clone(), None, Some(&mut draft_cache));
+        let target_logits = self
+            .target_model
+            .forward(input, None, Some(&mut target_cache));
+
+        let mut next_token_logits = target_logits
+            .slice([0..1, (tokens_ids.len() - 1)..tokens_ids.len()])
+            .flatten::<1>(0, 2);
+
+        let mut generated_count = 0;
+
+        while generated_count < max_new_tokens {
+            // --- 采样当前已知的最后一个 Token ---
+            let probs = burn::tensor::activation::softmax(
+                next_token_logits / (temperature as f64 + 1e-8),
+                0,
+            );
+            let last_token_id = probs.argmax(0).into_scalar().elem::<u32>(); // 简化为贪婪
+
+            if generated_count > 0 {
+                output_ids.push(last_token_id);
+                if Some(last_token_id) == self.tokenizer.pad_id() || last_token_id == 2 {
+                    break;
+                }
+            }
+            generated_count += 1;
+
+            // --- Draft Step: 预测后续 lookahead 个 token ---
+            let mut draft_tokens = Vec::new();
+            let mut current_draft_token = last_token_id;
+
+            for _ in 0..lookahead {
+                let draft_input = Tensor::<B, 2, Int>::from_data(
+                    burn::tensor::TensorData::new(vec![current_draft_token as i32], [1, 1]),
+                    &device,
+                );
+                let d_logits = self
+                    .draft_model
+                    .forward(draft_input, None, Some(&mut draft_cache));
+                current_draft_token = d_logits.argmax(2).into_scalar().elem::<u32>();
+                draft_tokens.push(current_draft_token);
+            }
+
+            // --- Target Step: 一次性验证 Draft Tokens ---
+            // 构建验证输入: [last_token, draft_token_1, ..., draft_token_k]
+            let mut verify_vec = vec![last_token_id as i32];
+            verify_vec.extend(draft_tokens.iter().map(|&t| t as i32));
+
+            let verify_input = Tensor::<B, 2, Int>::from_data(
+                burn::tensor::TensorData::new(verify_vec.clone(), [1, verify_vec.len()]),
+                &device,
+            );
+
+            // 并行 Forward
+            let v_logits = self
+                .target_model
+                .forward(verify_input, None, Some(&mut target_cache));
+
+            // --- Verification & Rejection Sampling ---
+            let mut accepted_count = 0;
+            let mut final_next_logits = None;
+
+            for i in 0..lookahead {
+                // Target 对该位置的预测 (对应输入中的 verify_input[i])
+                let target_pred_logits =
+                    v_logits.clone().slice([0..1, i..i + 1]).flatten::<1>(0, 2);
+                let target_pred_token = target_pred_logits
+                    .clone()
+                    .argmax(0)
+                    .into_scalar()
+                    .elem::<u32>();
+
+                if target_pred_token == draft_tokens[i] {
+                    accepted_count += 1;
+                    output_ids.push(draft_tokens[i]);
+                    generated_count += 1;
+
+                    // 同步 Draft Cache (已经更新过了)
+                } else {
+                    // 拒绝！获取 Target 给出的正确下一个 Token 的 logits
+                    final_next_logits = Some(target_pred_logits);
+                    break;
+                }
+            }
+
+            // 如果全部接受，还需要获取最后一个位置的 logits 以进行下一次循环
+            if final_next_logits.is_none() {
+                final_next_logits = Some(
+                    v_logits
+                        .slice([0..1, lookahead..lookahead + 1])
+                        .flatten::<1>(0, 2),
+                );
+            }
+
+            next_token_logits = final_next_logits.unwrap();
+
+            // --- Cache Synchronization ---
+            // Target Cache 此时已经增长了 verify_vec.len() = lookahead + 1
+            // 实际上我们只接受了 accepted_count + 1 (最后一个是用来预测下一次的，还没存入 Cache)
+            // 更新 Cache 到真正 accepted 的长度
+            let total_valid_len = target_cache.seq_len() - (lookahead - accepted_count);
+            target_cache.truncate(total_valid_len);
+            draft_cache.truncate(total_valid_len);
+        }
+
+        self.tokenizer.decode(&output_ids)
+    }
+}
+
+#[cfg(test)]
+mod tests {}

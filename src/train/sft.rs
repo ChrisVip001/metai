@@ -37,7 +37,7 @@ pub fn run_sft_training(
 
     // Split 90/10
     let total_len = burn::data::dataset::Dataset::len(&dataset);
-    let train_len = (total_len as f32 * 0.9) as usize;
+    let _train_len = (total_len as f32 * 0.9) as usize;
     // Burn's Dataset doesn't have easy split? We can use transform or just load two files.
     // Let's just use the full dataset for training for now.
 

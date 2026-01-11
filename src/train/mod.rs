@@ -152,6 +152,10 @@ impl<B: Backend> ValidStep<SFTBatch<B>, MetaIOutput<B>> for MetaIModel<B> {
     }
 }
 
+pub mod distributed;
 pub mod dpo;
+pub mod grpo;
+pub mod grpo_train_step;
+pub mod reward;
 pub mod sft;
 pub mod train;

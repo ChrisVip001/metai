@@ -95,7 +95,7 @@ impl<B: Backend> DPOLoss<B> {
         logits: Tensor<B, 3>,      // [Batch, Seq, Vocab]
         labels: Tensor<B, 2, Int>, // [Batch, Seq]
         mask: Tensor<B, 2, Int>,   // [Batch, Seq]
-        pad_id: i32,
+        _pad_id: i32,
     ) -> Tensor<B, 1> {
         let [batch_size, seq_len, _vocab] = logits.dims();
 
