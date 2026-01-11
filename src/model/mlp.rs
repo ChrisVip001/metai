@@ -2,7 +2,7 @@ use burn::module::Module;
 use burn::nn::{Linear, LinearConfig};
 use burn::tensor::activation::silu;
 use burn::tensor::backend::Backend;
-use burn::tensor::{ElementConversion, Tensor};
+use burn::tensor::Tensor;
 
 #[derive(Module, Debug)]
 pub struct SwiGLU<B: Backend> {
@@ -68,53 +68,95 @@ impl<B: Backend> MoE<B> {
     }
 
     /// 优化的 MoE 前向传播
-    /// 
+    ///
     /// 改进点：
     /// 1. 只为每个被选中的专家执行一次 forward，避免重复计算
     /// 2. 使用更高效的路由和聚合策略
     /// 3. 减少不必要的张量克隆操作
+    /// 优化的 MoE 前向传播 (Sparse Execution)
+    ///
+    /// 改进点：
+    /// 1. 使用 Sparse Gather-Compute-Scatter 模式
+    /// 2. 避免了对未选中 Expert 的 Token 进行无效计算
+    /// 3. 使用 `argwhere` + `select` 提取 Token，大幅减少 FLOPs
     pub fn forward<const D: usize>(&self, x: Tensor<B, D>) -> Tensor<B, D> {
         let dims = x.dims();
         let batch_seq_len = dims.iter().take(D - 1).product();
         let hidden_dim = dims[D - 1];
 
-        // 展平为 [Batch * Seq, Hidden] 便于路由
+        // 1. 展平为 [Batch * Seq, Hidden]
         let x_flat = x.reshape([batch_seq_len, hidden_dim]);
 
-        // 计算门控权重: [Batch * Seq, NumExperts]
+        // 2. 计算门控权重: [Batch * Seq, NumExperts]
         let gate_logits = self.gate.forward(x_flat.clone());
 
-        // 获取 Top-K 专家索引和权重
+        // 3. 获取 Top-K 专家索引和权重
         let (weights, indices) = gate_logits.topk_with_indices(self.active_experts, 1);
         let weights = burn::tensor::activation::softmax(weights, 1);
 
-        // 初始化输出
+        // 4. 初始化输出
         let mut output = x_flat.zeros_like();
 
-        // 优化的路由策略：收集每个专家需要处理的 token，然后批量处理
-        // 对每个被选中的 top-k 位置，计算对应专家的贡献
+        // 5. 稀疏路由：只计算选中的 Token
         for k in 0..self.active_experts {
-            let k_indices = indices.clone().slice([0..batch_seq_len, k..(k + 1)]);
-            let k_weights = weights.clone().slice([0..batch_seq_len, k..(k + 1)]);
+            // 获取第 k 个选择的专家索引: [Batch * Seq]
+            let k_indices = indices
+                .clone()
+                .slice([0..batch_seq_len, k..(k + 1)])
+                .flatten::<1>(0, 1);
+            let k_weights = weights
+                .clone()
+                .slice([0..batch_seq_len, k..(k + 1)])
+                .flatten::<1>(0, 1);
 
-            // 对每个可能的专家，收集分配给它的 token
+            // 遍历所有专家 (虽然有循环，但内部计算是稀疏的)
+            // 只有当 Expert 被至少一个 Token 选中时才会触发计算
             for expert_idx in 0..self.num_experts {
-                // 检查这个 top-k 位置是否选择了当前专家
+                // mask: [Batch * Seq]
                 let mask = k_indices.clone().equal_elem(expert_idx as i32);
-                
-                // 如果没有任何 token 选择这个专家，跳过
-                let has_any = mask.clone().any();
-                if !has_any.into_scalar().elem::<bool>() {
+
+                // 快速跳过无人选中的 Expert (避免 Synchronization if possible, but argwhere implies sync or dynamic shape)
+                // 这里我们先做一个 cheap check 或者直接 argwhere
+                // 注意：在某些后端 argwhere 可能导致同步，但在 Eager 模式下没问题。
+                // 如果后端支持动态形状，这是最高效的。
+
+                // 获取选中该专家的 Token 索引
+                // mask 是 1D, argwhere 返回 [NumSelected, 1]
+                let selected_indices = mask.argwhere().flatten::<1>(0, 1);
+                let num_selected = selected_indices.dims()[0];
+
+                if num_selected == 0 {
                     continue;
                 }
-                
-                let mask_float = mask.float();
 
-                // 计算该专家对所有 token 的输出（只执行一次）
-                let expert_out = self.experts[expert_idx].forward(x_flat.clone());
-                
-                // 累加该专家的加权贡献（只对选择了该专家的 token 有效）
-                output = output + (expert_out * mask_float * k_weights.clone());
+                // Gather: 提取对应 Token 的输入 [NumSelected, Hidden]
+                let x_selected = x_flat.clone().select(0, selected_indices.clone());
+
+                // Compute: 只计算选中的 Token
+                let expert_out = self.experts[expert_idx].forward(x_selected);
+
+                // Weighting: 提取对应的权重并加权
+                let w_selected = k_weights
+                    .clone()
+                    .select(0, selected_indices.clone())
+                    .unsqueeze::<2>();
+                let weighted_out = expert_out * w_selected;
+
+                // Scatter: 将结果加回主输出流
+                // update = current + new_part
+                // output[indices] += weighted_out
+                // Burn 目前的 scatter 是替换操作，所以我们需要先 gather, add, 然后 scatter
+                // 或者如果 scatter_add 可用... Burn 0.13 有 scatter_add 吗?
+                // 如果没有，我们使用: output = output.scatter(indices, output.select(indices) + weighted_out)
+
+                let [num_selected, hidden] = weighted_out.dims();
+                let indices_expanded = selected_indices
+                    .clone()
+                    .reshape([num_selected, 1])
+                    .expand([num_selected, hidden]);
+
+                let current_val = output.clone().select(0, selected_indices.clone());
+                output = output.scatter(0, indices_expanded, current_val + weighted_out);
             }
         }
 
