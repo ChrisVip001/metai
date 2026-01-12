@@ -71,6 +71,8 @@ impl DistributedTrainer {
 
         // 5. 构建模型与 Learner
         let model = MetaIModel::new(&config.base_config.model, pad_id, &device);
+        let model = crate::train::load_model_checkpoint(model, artifact_dir, &device);
+
         let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
 
         let learner = LearnerBuilder::new(artifact_dir)

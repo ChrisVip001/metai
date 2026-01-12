@@ -3,7 +3,6 @@ use crate::data::MetaITokenizer;
 use crate::model::MetaIModel;
 use crate::train::MetaITrainingConfig;
 use burn::config::Config;
-use burn::module::Module;
 use burn::tensor::backend::Backend;
 use burn::tensor::{Int, Tensor};
 use burn::train::metric::LossMetric;
@@ -117,30 +116,10 @@ pub fn run_grpo_training(data_path: &str, model_dir: &str, output_dir: &str) -> 
     let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
 
     let policy_model = MetaIModel::new(&config.model, pad_id, &device);
+    let policy_model = crate::train::load_model_checkpoint(policy_model, model_dir, &device);
+
     let ref_model = MetaIModel::new(&config.model, pad_id, &device);
-
-    let policy_model = if let Some(epoch) = crate::train::train::find_latest_epoch(model_dir) {
-        println!("Loading Policy from epoch {}", epoch);
-        let model_path = std::path::Path::new(model_dir)
-            .join("checkpoint")
-            .join(format!("model-{}.bin", epoch));
-        policy_model
-            .load_file(model_path, &recorder, &device)
-            .expect("Failed to load policy")
-    } else {
-        policy_model
-    };
-
-    let ref_model = if let Some(epoch) = crate::train::train::find_latest_epoch(model_dir) {
-        let model_path = std::path::Path::new(model_dir)
-            .join("checkpoint")
-            .join(format!("model-{}.bin", epoch));
-        ref_model
-            .load_file(model_path, &recorder, &device)
-            .expect("Failed to load ref")
-    } else {
-        ref_model
-    };
+    let ref_model = crate::train::load_model_checkpoint(ref_model, model_dir, &device);
 
     // 4. Wrapper & Learner
     let wrapper =

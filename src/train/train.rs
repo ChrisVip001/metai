@@ -70,7 +70,7 @@ pub fn train<B: AutodiffBackend>(
         .num_epochs(config.num_epochs)
         .summary();
 
-    let learner = if let Some(epoch) = find_latest_epoch(artifact_dir) {
+    let learner = if let Some(epoch) = crate::train::find_latest_epoch(artifact_dir) {
         println!("Found checkpoint at epoch {}, resuming training...", epoch);
         learner_builder.checkpoint(epoch).build(
             model,
@@ -85,40 +85,6 @@ pub fn train<B: AutodiffBackend>(
     let _ = learner.fit(dataloader_train, dataloader_valid);
 
     Ok(())
-}
-
-pub fn find_latest_epoch(artifact_dir: &str) -> Option<usize> {
-    let checkpoint_dir = std::path::Path::new(artifact_dir).join("checkpoint");
-    if !checkpoint_dir.exists() {
-        return None;
-    }
-
-    let mut max_epoch = 0;
-    if let Ok(entries) = std::fs::read_dir(checkpoint_dir) {
-        for entry in entries.flatten() {
-            if let Some(file_name) = entry.file_name().to_str() {
-                // 模型保存格式通常为 model-X.bin
-                if file_name.starts_with("model-") && file_name.ends_with(".bin") {
-                    if let Some(epoch_str) = file_name
-                        .strip_prefix("model-")
-                        .and_then(|s| s.strip_suffix(".bin"))
-                    {
-                        if let Ok(epoch) = epoch_str.parse::<usize>() {
-                            if epoch > max_epoch {
-                                max_epoch = epoch;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if max_epoch > 0 {
-        Some(max_epoch)
-    } else {
-        None
-    }
 }
 
 pub fn run_small_training(

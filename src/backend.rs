@@ -1,7 +1,9 @@
+use burn::backend::Autodiff;
+
 #[cfg(feature = "wgpu")]
 mod wgpu_backend {
-    use burn::backend::wgpu::{Wgpu, WgpuDevice};
-    use burn::backend::Autodiff;
+    use super::*;
+    use burn_wgpu::{Wgpu, WgpuDevice};
 
     pub type MyBackend = Wgpu;
     pub type MyAutodiffBackend = Autodiff<Wgpu>;
@@ -14,20 +16,15 @@ mod wgpu_backend {
 
 #[cfg(feature = "cuda")]
 mod cuda_backend {
-    use burn::backend::libtorch::{LibTorch, LibTorchDevice};
-    use burn::backend::Autodiff;
+    use super::*;
+    use burn_tch::{LibTorch, LibTorchDevice};
 
-    // Use float16 by default for performance on modern GPUs
-    pub type MyBackend = LibTorch<f32>;
-    pub type MyAutodiffBackend = Autodiff<LibTorch<f32>>;
+    pub type MyBackend = LibTorch;
+    pub type MyAutodiffBackend = Autodiff<LibTorch>;
     pub type MyDevice = LibTorchDevice;
 
     pub fn get_device() -> MyDevice {
-        #[cfg(not(target_os = "macos"))]
-        return LibTorchDevice::Cuda(0);
-
-        #[cfg(target_os = "macos")]
-        return LibTorchDevice::Mps;
+        LibTorchDevice::Cuda(0)
     }
 }
 

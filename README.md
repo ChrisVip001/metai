@@ -32,11 +32,12 @@ MetaI 并非一个简单的 LLM 演示项目，而是一个旨在挑战 2026 年
 
 ## 🌐 分布式集群训练 Deep Dive
 
-在 `metai` 中，大规模分布式训练不再是黑箱。通过 `train-cluster` 命令，你可以直接操作 **685B MoE** 级模型：
+在 `metai` 中，大规模分布式训练不再是黑箱。利用 `LibTorch` (Burn-tch) 后端，深度调用 Tensor Cores 算力，通过 `train-cluster` 命令，你可以直接操作 **685B MoE** 级模型：
 
 ```bash
 # 在 A100/H100 集群上启动 685B 顶配训练
-cargo run --release -- train-cluster \
+# 需确保系统已安装 CUDA 和 cuDNN
+cargo run --release --no-default-features --features cuda -- train-cluster \
     --world-size 128 \
     --chinese-path /mnt/data/huge_zh_corpus.jsonl \
     --english-path /mnt/data/huge_en_corpus.jsonl
@@ -57,7 +58,7 @@ cargo run --release -- train-cluster \
 - **驱动**: 需正确配置 CUDA 12.x 或 WGPU 运行时
 
 ### 2. 训练你的第一个 Small 模型 (125M)
-适合在本地 16GB 显存设备上快速运行：
+适合在本地 16GB+ 显存设备上快速运行：
 
 ```bash
 # 克隆并编译

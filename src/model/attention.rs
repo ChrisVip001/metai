@@ -69,76 +69,34 @@ impl<B: Backend> GroupedQueryAttention<B> {
         let k = rope.forward_with_offset(k, offset);
 
         if let Some(cache) = cache {
-            // --- Paged Attention Block-wise Calculation ---
-
             // Update Cache
             cache.update(k, v);
 
+            // Fetch Full Cache (Concat of all blocks)
+            // Ideally we should use PagedAttention kernel, but for portability/simplicity on WGPU/M1:
+            // We concat to standard tensors.
+            let (k_full, v_full) = cache.get_full();
+
             // GQA Repeat info
             let n_rep = self.n_heads / self.n_kv_heads;
+
+            // Repeat Heads for GQA
+            let k = self.repeat_heads(k_full, n_rep);
+            let v = self.repeat_heads(v_full, n_rep);
+
+            // Compute Attention Scores
             let scale = (self.head_dim as f32).sqrt().recip();
+            let attn_scores = q.matmul(k.swap_dims(2, 3)) * scale;
 
-            // Compute Scores per Block
-            let mut block_scores = Vec::with_capacity(cache.blocks.len());
+            // Softmax
+            let attn_probs = burn::tensor::activation::softmax(attn_scores, 3);
 
-            for block in &cache.blocks {
-                // Slice valid part: [Batch, KVHeads, Filled, Dim]
-                let k_block = block.k.clone().slice([
-                    0..batch_size,
-                    0..self.n_kv_heads,
-                    0..block.filled,
-                    0..self.head_dim,
-                ]);
+            // Output
+            let out = attn_probs.matmul(v);
 
-                // Repeat Heads
-                let k_block = self.repeat_heads(k_block, n_rep);
-
-                // Score = Q * K^T -> [Batch, Heads, QSeq, Filled]
-                let score = q.clone().matmul(k_block.swap_dims(2, 3)) * scale;
-                block_scores.push(score);
-            }
-
-            // Global Softmax
-            let all_scores = Tensor::cat(block_scores, 3);
-            let all_probs = burn::tensor::activation::softmax(all_scores, 3);
-
-            // Weighted Sum per Block
-            let mut output_unflat = Tensor::<B, 4>::zeros(
-                [batch_size, self.n_heads, seq_len, self.head_dim],
-                &q.device(),
-            );
-
-            let mut offset = 0;
-            for block in &cache.blocks {
-                let filled = block.filled;
-
-                // [Batch, Heads, QSeq, Filled]
-                let prob_block = all_probs.clone().slice([
-                    0..batch_size,
-                    0..self.n_heads,
-                    0..seq_len,
-                    offset..offset + filled,
-                ]);
-
-                let v_block = block.v.clone().slice([
-                    0..batch_size,
-                    0..self.n_kv_heads,
-                    0..filled,
-                    0..self.head_dim,
-                ]);
-                let v_block = self.repeat_heads(v_block, n_rep);
-
-                // Out += Prob * V
-                output_unflat = output_unflat + prob_block.matmul(v_block);
-
-                offset += filled;
-            }
-
-            let out = output_unflat.swap_dims(1, 2).reshape([
-                batch_size,
-                seq_len,
-                self.n_heads * self.head_dim,
-            ]);
+            let out =
+                out.swap_dims(1, 2)
+                    .reshape([batch_size, seq_len, self.n_heads * self.head_dim]);
             self.w_o.forward(out)
         } else {
             // --- Standard Non-Cached Attention ---

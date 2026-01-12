@@ -1,3 +1,4 @@
+use burn::module::Module;
 use burn::nn::loss::CrossEntropyLossConfig;
 use burn::optim::AdamWConfig;
 use burn::tensor::backend::{AutodiffBackend, Backend};
@@ -180,3 +181,69 @@ pub mod grpo_train_step;
 pub mod reward;
 pub mod sft;
 pub mod train;
+
+// --- Shared Utilities ---
+
+pub fn find_latest_epoch(artifact_dir: &str) -> Option<usize> {
+    let checkpoint_dir = std::path::Path::new(artifact_dir).join("checkpoint");
+    if !checkpoint_dir.exists() {
+        return None;
+    }
+
+    let mut max_epoch = 0;
+    if let Ok(entries) = std::fs::read_dir(checkpoint_dir) {
+        for entry in entries.flatten() {
+            if let Some(file_name) = entry.file_name().to_str() {
+                // 模型保存格式通常为 model-X.bin
+                if file_name.starts_with("model-") && file_name.ends_with(".bin") {
+                    if let Some(epoch_str) = file_name
+                        .strip_prefix("model-")
+                        .and_then(|s| s.strip_suffix(".bin"))
+                    {
+                        if let Ok(epoch) = epoch_str.parse::<usize>() {
+                            if epoch > max_epoch {
+                                max_epoch = epoch;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if max_epoch > 0 {
+        Some(max_epoch)
+    } else {
+        None
+    }
+}
+
+pub fn load_model_checkpoint<B: Backend>(
+    model: MetaIModel<B>,
+    model_dir: &str,
+    device: &B::Device,
+) -> MetaIModel<B> {
+    use burn::record::{BinFileRecorder, FullPrecisionSettings};
+    let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
+
+    if let Some(epoch) = find_latest_epoch(model_dir) {
+        println!("Loading model checkpoint from epoch {}", epoch);
+        let model_path = std::path::Path::new(model_dir)
+            .join("checkpoint")
+            .join(format!("model-{}.bin", epoch));
+
+        match model.load_file(model_path, &recorder, device) {
+            Ok(m) => m,
+            Err(e) => {
+                println!("Failed to load checkpoint: {}. Starting from scratch.", e);
+                panic!("Failed to load checkpoint");
+            }
+        }
+    } else {
+        println!(
+            "No checkpoint found at {}, utilizing initial weights.",
+            model_dir
+        );
+        model
+    }
+}

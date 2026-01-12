@@ -5,14 +5,16 @@ edition = "2021"
 
 [features]
 default = ["wgpu"]
-wgpu = ["burn/wgpu"]
-cuda = ["burn/tch"]
+wgpu = ["dep:burn-wgpu"]
+cuda = ["dep:burn-tch"]
 
 [dependencies]
 # Burn 框架核心
 burn = { version = "0.19.1", features = ["train", "vision"] }
 burn-train = { version = "0.19.1" }
-burn-core = { version = "0.19.1" }
+# Backends
+burn-wgpu = { version = "0.19.1", optional = true }
+burn-tch = { version = "0.19.1", optional = true }
 burn-autodiff = { version = "0.19.1" }
 
 # 数据处理

@@ -349,32 +349,11 @@ pub fn run_dpo_training(
 
     // Load Policy (Optimized)
     let policy_model = MetaIModel::new(&config.model, pad_id, &device);
-    let policy_model = if let Some(epoch) = crate::train::train::find_latest_epoch(model_dir) {
-        println!("Loading Policy model from epoch {}", epoch);
-        let model_path = std::path::Path::new(model_dir)
-            .join("checkpoint")
-            .join(format!("model-{}.bin", epoch));
-        policy_model
-            .load_file(model_path, &recorder, &device)
-            .expect("Failed to load policy weights")
-    } else {
-        println!("Warning: No checkpoint for Policy! DPO requires a converged SFT model.");
-        policy_model
-    };
+    let policy_model = crate::train::load_model_checkpoint(policy_model, model_dir, &device);
 
     // Load Reference (Frozen)
     let ref_model = MetaIModel::new(&config.model, pad_id, &device);
-    let ref_model = if let Some(epoch) = crate::train::train::find_latest_epoch(model_dir) {
-        println!("Loading Reference model from epoch {}", epoch);
-        let model_path = std::path::Path::new(model_dir)
-            .join("checkpoint")
-            .join(format!("model-{}.bin", epoch));
-        ref_model
-            .load_file(model_path, &recorder, &device)
-            .expect("Failed to load ref weights")
-    } else {
-        ref_model
-    };
+    let ref_model = crate::train::load_model_checkpoint(ref_model, model_dir, &device);
 
     let model_wrapper = DPOWrapper::new(policy_model, ref_model);
 

@@ -1,7 +1,6 @@
 use crate::backend::{get_device, MyAutodiffBackend, MyBackend};
 use burn::data::dataloader::DataLoaderBuilder;
 
-use burn::module::Module;
 use burn::train::metric::LossMetric;
 use burn::train::LearnerBuilder;
 
@@ -62,23 +61,7 @@ pub fn run_sft_training(
 
     // Construct empty model first
     let model = MetaIModel::new(&config.model, pad_id, &device);
-
-    // Find latest checkpoint in model_dir
-    let model = if let Some(epoch) = crate::train::train::find_latest_epoch(model_dir) {
-        println!("Loading pre-trained model from epoch {}", epoch);
-        let model_path = std::path::Path::new(model_dir)
-            .join("checkpoint")
-            .join(format!("model-{}.bin", epoch));
-        model
-            .load_file(model_path, &recorder, &device)
-            .expect("Failed to load weights")
-    } else {
-        println!(
-            "Warning: No pre-trained checkpoint found at {}, starting from scratch!",
-            model_dir
-        );
-        model
-    };
+    let model = crate::train::load_model_checkpoint(model, model_dir, &device);
 
     // 4. Build Learner
     let learner = LearnerBuilder::new(output_dir)
