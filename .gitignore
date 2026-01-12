@@ -16,6 +16,8 @@ venv/
 model_output/
 checkpoints/
 artifacts/
+output_micro/
+output_small/
 /tmp/
 
 # IDE

@@ -87,6 +87,29 @@ pub fn train<B: AutodiffBackend>(
     Ok(())
 }
 
+pub fn run_micro_training(
+    chinese_path: &str,
+    english_path: &str,
+    output_dir: &str,
+) -> anyhow::Result<()> {
+    let device = get_device();
+    let config = MetaITrainingConfig {
+        chinese_path: chinese_path.to_string(),
+        english_path: english_path.to_string(),
+        tokenizer_path: "tokenizer.json".to_string(),
+        model: MetaIConfig::micro(),
+        optimizer: burn::optim::AdamWConfig::new().with_epsilon(1e-5), // 提高 epsilon 稳定性
+        batch_size: 8,
+        num_epochs: 10,
+        learning_rate: 1e-6, // 再次下调，采用保守策略寻找数值稳定点
+        seed: 42,
+        grads_accumulation: 16, // 等效 Batch=128
+    };
+
+    train::<MyAutodiffBackend>(output_dir, config, device)?;
+    Ok(())
+}
+
 pub fn run_small_training(
     chinese_path: &str,
     english_path: &str,

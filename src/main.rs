@@ -15,6 +15,42 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// 运行 30M 微型模型训练 (快速验证)
+    TrainMicro {
+        #[arg(short, long)]
+        chinese_path: String,
+        #[arg(short, long)]
+        english_path: String,
+        #[arg(short, long, default_value = "tokenizer.json")]
+        tokenizer_path: String,
+        #[arg(short, long, default_value = "output_micro")]
+        output_dir: String,
+    },
+    /// 运行自定义配置模型训练
+    TrainCustom {
+        #[arg(short, long)]
+        chinese_path: String,
+        #[arg(short, long)]
+        english_path: String,
+        #[arg(short, long, default_value = "output_custom")]
+        output_dir: String,
+        #[arg(long, default_value_t = 32000)]
+        vocab_size: usize,
+        #[arg(long, default_value_t = 384)]
+        hidden_dim: usize,
+        #[arg(long, default_value_t = 6)]
+        num_layers: usize,
+        #[arg(long, default_value_t = 6)]
+        num_heads: usize,
+        #[arg(long, default_value_t = 2)]
+        num_kv_heads: usize,
+        #[arg(long, default_value_t = 1024)]
+        mlp_dim: usize,
+        #[arg(long, default_value_t = 512)]
+        max_seq_len: usize,
+        #[arg(long, default_value_t = 4)]
+        batch_size: usize,
+    },
     /// 运行 125M 中等模型单机训练
     TrainSmall {
         #[arg(short, long)]
@@ -95,6 +131,15 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
+        Commands::TrainMicro {
+            chinese_path,
+            english_path,
+            tokenizer_path: _,
+            output_dir,
+        } => {
+            println!("Starting MetaI Nano (6.6M) Training...");
+            train::run_micro_training(&chinese_path, &english_path, &output_dir)?;
+        }
         Commands::TrainSmall {
             chinese_path,
             english_path,
@@ -103,6 +148,55 @@ fn main() -> anyhow::Result<()> {
         } => {
             println!("Starting MetaI Small (125M) Training...");
             train::run_small_training(&chinese_path, &english_path, &output_dir)?;
+        }
+        Commands::TrainCustom {
+            chinese_path,
+            english_path,
+            output_dir,
+            vocab_size,
+            hidden_dim,
+            num_layers,
+            num_heads,
+            num_kv_heads,
+            mlp_dim,
+            max_seq_len,
+            batch_size,
+        } => {
+            println!("Starting Custom Model Training...");
+
+            let config = MetaIConfig {
+                vocab_size,
+                hidden_dim,
+                num_layers,
+                num_heads,
+                num_kv_heads,
+                mlp_dim,
+                max_seq_len,
+                dropout: 0.0,
+                num_experts: 4,
+                active_experts: 1,
+                num_shared_experts: 0,
+            };
+
+            // Call run_custom_training logic (needs to be added or inline here)
+            // For simplicity, we can reuse logic or create a helper
+            let training_config = metai::train::MetaITrainingConfig {
+                chinese_path: chinese_path.to_string(),
+                english_path: english_path.to_string(),
+                tokenizer_path: "tokenizer.json".to_string(),
+                model: config,
+                optimizer: burn::optim::AdamWConfig::new(),
+                batch_size,
+                num_epochs: 10,
+                learning_rate: 1e-3,
+                seed: 42,
+                grads_accumulation: 4,
+            };
+            metai::train::train::train::<metai::backend::MyAutodiffBackend>(
+                &output_dir,
+                training_config,
+                get_device(),
+            )?;
         }
         Commands::TrainCluster {
             world_size,

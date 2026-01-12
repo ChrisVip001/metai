@@ -72,6 +72,33 @@ cargo run --release -- train-small \
     --output-dir output_small
 ```
 
+### 3. 高级训练选项
+
+**Micro 模式 (5-30M 参数)**
+极速验证逻辑，适合轻量级开发：
+```bash
+cargo run --release -- train-micro \
+    --chinese-path 4in1.txt \
+    --english-path dataset.txt \
+    --output-dir output_micro
+```
+
+**Custom 自定义模式**
+通过命令行灵活调整模型架构，无需修改代码：
+```bash
+# 训练一个 64维、2层的 Nano 模型
+cargo run --release -- train-custom \
+    --chinese-path 4in1.txt \
+    --english-path dataset.txt \
+    --output-dir output_custom \
+    --hidden-dim 64 \ # 模型隐藏层维度
+    --num-layers 2 \ # 模型层数
+    --num-heads 2 \ # 模型头数
+    --num-kv-heads 1 \ # KV Cache 头数
+    --mlp-dim 128 \ # MLP 层维度
+    --batch-size 8 \ # 批处理大小
+```
+
 ---
 
 ## 🧠 RLHF 强化学习与推理增强 (GRPO)

@@ -11,34 +11,34 @@ use crate::train::MetaITrainingConfig;
 
 pub fn run_sft_training(
     data_path: &str,
-    model_dir: &str, // Load pre-trained model from here
+    model_dir: &str, // 从此处加载预训练模型
     output_dir: &str,
 ) -> anyhow::Result<()> {
     let device = get_device();
 
-    // 1. Load Config & Tokenizer
-    // Assume config is in model_dir or use default SFT config
-    // For simplicity, we use a default SFT config based on 'small' but with lower LR
+    // 1. 加载配置与分词器
+    // 假设配置在 model_dir 中，或者使用默认的 SFT 配置
+    // 为简单起见，我们基于 'small' 配置使用默认的 SFT 配置，但降低学习率
     let mut config = MetaITrainingConfig::new(crate::model::MetaIConfig::small());
-    config.learning_rate = 1e-5; // Lower LR for Fine-tuning
+    config.learning_rate = 1e-5; // 微调时使用较低的学习率
     config.num_epochs = 3;
-    config.batch_size = 4; // Adjust based on memory
+    config.batch_size = 4; // 根据显存大小调整
     config.tokenizer_path = "tokenizer.json".to_string();
 
     let tokenizer = MetaITokenizer::new(&config.tokenizer_path)?;
     let pad_id = tokenizer.pad_id().unwrap_or(0);
 
-    // 2. Prepare Dataset (SFT)
-    // SFT dataset is usually smaller, so we might not need Valid set strictly if data is scarce,
-    // but good practice to have one. Here we use same file for simplicity or split it.
-    // For this demo, we assume data_path contains JSONL.
+    // 2. 准备数据集 (SFT)
+    // SFT 数据集通常较小，如果数据稀缺，可能不需要严格的验证集，
+    // 但拥有验证集是一个好习惯。这里为简单起见使用相同的文件，或者将其拆分。
+    // 在本演示中，我们假设 data_path 包含 JSONL 文件。
     let dataset = InstructionDataset::from_file(data_path, &tokenizer, config.model.max_seq_len)?;
 
-    // Split 90/10
+    // 90/10 拆分
     let total_len = burn::data::dataset::Dataset::len(&dataset);
     let _train_len = (total_len as f32 * 0.9) as usize;
-    // Burn's Dataset doesn't have easy split? We can use transform or just load two files.
-    // Let's just use the full dataset for training for now.
+    // Burn 的 Dataset 没有简单的拆分方法？我们可以使用 transform 或者直接加载两个文件。
+    // 目前我们先使用整个数据集进行训练。
 
     let batcher = SFTBatcher::<MyAutodiffBackend>::new(device.clone(), pad_id);
     let batcher_valid = SFTBatcher::<MyBackend>::new(device.clone(), pad_id);
@@ -53,17 +53,17 @@ pub fn run_sft_training(
         .batch_size(config.batch_size)
         .shuffle(config.seed)
         .num_workers(4)
-        .build(dataset); // use same for valid in this simplified demo
+        .build(dataset); // 在此简化的演示中，验证集使用相同的数据
 
-    // 3. Load Pre-trained Model
+    // 3. 加载预训练模型
     use burn::record::{BinFileRecorder, FullPrecisionSettings};
     let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
 
-    // Construct empty model first
+    // 先构建一个空模型
     let model = MetaIModel::new(&config.model, pad_id, &device);
     let model = crate::train::load_model_checkpoint(model, model_dir, &device);
 
-    // 4. Build Learner
+    // 4. 构建 Learner
     let learner = LearnerBuilder::new(output_dir)
         .metric_train_numeric(LossMetric::<MyAutodiffBackend>::new())
         .metric_valid_numeric(LossMetric::<MyAutodiffBackend>::new())
@@ -72,7 +72,7 @@ pub fn run_sft_training(
         .num_epochs(config.num_epochs)
         .build(model, config.optimizer.init(), config.learning_rate);
 
-    // 5. Fit
+    // 5. 开始拟合
     let _ = learner.fit(dataloader_train, dataloader_valid);
 
     Ok(())

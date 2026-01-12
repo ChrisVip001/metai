@@ -11,9 +11,9 @@ use burn::train::LearnerBuilder;
 #[derive(Config, Debug)]
 pub struct GRPOConfig {
     #[config(default = 0.1)]
-    pub beta: f64, // KL penalty coefficient
+    pub beta: f64, // KL 惩罚系数
     #[config(default = 0.2)]
-    pub clip_eps: f64, // PPO clipping epsilon
+    pub clip_eps: f64, // PPO 裁剪 epsilon
 }
 
 pub struct GRPOLoss<B: Backend> {
@@ -57,29 +57,29 @@ impl<B: Backend> GRPOLoss<B> {
             .reshape([batch_size, group_size, 1])
             .expand([batch_size, group_size, seq_len]);
 
-        // 2. 计算 Ratio (Importance Sampling)
+        // 2. 计算 Ratio (重要性采样)
         // ratio = exp(log_pi - log_ref) = pi / ref
-        // 注意：这里假设 policy_logprobs 是相对于 old_policy 的 (PPO style)，
+        // 注意：这里假设 policy_logprobs 是相对于 old_policy 的 (PPO 风格)，
         // 但 GRPO 通常简化为相对于 Reference 或只做单步更新。
         // 如果是单步 GRPO (如 DeepSeekMath)，通常直接优化 log_pi * A - beta * KL
         // DeepSeek-V3 论文公式: E [ (pi/pi_old) * A ] ... ?
         // 实际上 GRPO 往往结合 PPO:
         // ratio = exp(log_probs - old_log_probs)
         // 这里为了简化，我们假设 old_policy == ref_model (即第一步) 或者我们维护了 old_log_probs。
-        // 在此实现中，我们计算 log_pi * A - beta * KL(pi || ref) 的简化形式 (Vanilla Policy Gradient with Group Baseline)
+        // 在此实现中，我们计算 log_pi * A - beta * KL(pi || ref) 的简化形式 (带组基线的 Vanilla Policy Gradient)
         // 或者实现完整的 PPO-GRPO。
 
         // 我们实现带 KL 惩罚的 Policy Gradient: LOSS = - (mean(log_pi * A) - beta * KL)
 
-        // KL(pi || ref) approx = log_pi - log_ref
+        // KL(pi || ref) 近似 = log_pi - log_ref
         let kl = policy_logprobs.clone() - ref_logprobs;
 
-        // Per-token loss term
-        // Objective: maximize (log_pi * A - beta * KL)
-        // Loss: minimize -(log_pi * A - beta * KL)
+        // 对应每个 token 的损失项
+        // 目标：最大化 (log_pi * A - beta * KL)
+        // 损失：最小化 -(log_pi * A - beta * KL)
         let token_loss = (policy_logprobs * advantages) - (kl * self.config.beta);
 
-        // Masking
+        // Mask 遮罩
         let mask = mask.float();
         let token_loss = token_loss * mask.clone();
 
@@ -94,24 +94,24 @@ pub fn run_grpo_training(data_path: &str, model_dir: &str, output_dir: &str) -> 
     let device = get_device();
     let group_size = 4;
 
-    // 1. Config
+    // 1. 配置
     let mut config = MetaITrainingConfig::new(crate::model::MetaIConfig::small());
     config.learning_rate = 5e-7;
     config.num_epochs = 1;
-    config.batch_size = 2; // Batch of groups
+    config.batch_size = 2; // 组的批大小 (Batch of groups)
     config.tokenizer_path = "tokenizer.json".to_string();
 
     let tokenizer = MetaITokenizer::new(&config.tokenizer_path)?;
     let pad_id = tokenizer.pad_id().unwrap_or(0);
 
-    // 2. Data (Reuse SFT logic but interpreted as Groups)
+    // 2. 数据 (复用 SFT 逻辑，但将其解释为组形式)
     let dataset = crate::data::sft::InstructionDataset::from_file(
         data_path,
         &tokenizer,
         config.model.max_seq_len,
     )?;
 
-    // 3. Load Policy & Reference
+    // 3. 加载 Policy (策略模型) 和 Reference (参考模型)
     use burn::record::{BinFileRecorder, FullPrecisionSettings};
     let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
 
@@ -121,7 +121,7 @@ pub fn run_grpo_training(data_path: &str, model_dir: &str, output_dir: &str) -> 
     let ref_model = MetaIModel::new(&config.model, pad_id, &device);
     let ref_model = crate::train::load_model_checkpoint(ref_model, model_dir, &device);
 
-    // 4. Wrapper & Learner
+    // 4. Wrapper 包装器与 Learner 训练器
     let wrapper =
         crate::train::grpo_train_step::GRPOTrainWrapper::new(policy_model, ref_model, group_size);
 
@@ -169,12 +169,12 @@ mod tests {
         let group_size = 2;
         let seq_len = 3;
 
-        // 1. Rewards: Group 0 -> 1.0, Group 1 -> 2.0
-        // Mean = 1.5, Std = 0.5 (approx, population vs sample var differs but logic holds)
+        // 1. 奖励：组 0 -> 1.0, 组 1 -> 2.0
+        // Mean = 1.5, Std = 0.5 (近似值，总体方差与样本方差有差异但逻辑通顺)
         // Adv 0 < 0, Adv 1 > 0
         let rewards = Tensor::<TestBackend, 2>::from_floats([[1.0, 2.0]], &device);
 
-        // 2. Policy Logprobs (Close to Ref)
+        // 2. Policy Logprobs (接近 Ref)
         let policy_lp = Tensor::<TestBackend, 3>::zeros([batch_size, group_size, seq_len], &device);
         let ref_lp = Tensor::<TestBackend, 3>::zeros([batch_size, group_size, seq_len], &device);
 
@@ -188,7 +188,7 @@ mod tests {
             mask.clone(),
         );
 
-        // Assert Loss is near 0
+        // 断言 Loss 接近 0
         let loss_val = loss.into_scalar();
         assert!(loss_val.abs() < 1e-5);
     }

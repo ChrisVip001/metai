@@ -54,7 +54,7 @@ impl DistributedTrainer {
         };
 
         // 4. 构建 DataLoader
-        // 注意：在正式的大规模工程中，需实现一个 ShardedDataset 结构
+        // 注意：在正式的大规模工程中，需实现一个分片数据集 (ShardedDataset) 结构
         // 此处封装器直接传入全量数据集，但在 Worker 内部仅处理对应的 Batch
         let batcher_train = TextBatcher::<MyAutodiffBackend>::new(device.clone(), pad_id);
         let dataloader_train = DataLoaderBuilder::new(batcher_train)
