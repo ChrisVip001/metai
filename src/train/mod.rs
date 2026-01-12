@@ -1,7 +1,7 @@
 use burn::nn::loss::CrossEntropyLossConfig;
 use burn::optim::AdamWConfig;
 use burn::tensor::backend::{AutodiffBackend, Backend};
-use burn::tensor::Tensor;
+use burn::tensor::{ElementConversion, Tensor};
 
 use crate::data::data::TextBatch;
 use crate::model::{MetaIConfig, MetaIModel};
@@ -46,10 +46,23 @@ pub struct MetaIOutput<B: Backend> {
     pub loss: Tensor<B, 1>,
 }
 
-// 在 0.19 中，最稳妥的做法是让 ItemSync 保持与原 Backend 一致（或使用 Simple backend）
-// 避免过度深入 InnerBackend 的 Trait 迷宫
+#[derive(Clone, Debug)]
+pub struct MetaIOutputSync {
+    pub loss: f32,
+}
+
 impl<B: Backend> burn::train::metric::ItemLazy for MetaIOutput<B> {
-    type ItemSync = MetaIOutput<B>;
+    type ItemSync = MetaIOutputSync;
+
+    fn sync(self) -> Self::ItemSync {
+        MetaIOutputSync {
+            loss: self.loss.into_scalar().elem::<f32>(),
+        }
+    }
+}
+
+impl burn::train::metric::ItemLazy for MetaIOutputSync {
+    type ItemSync = Self;
 
     fn sync(self) -> Self::ItemSync {
         self
@@ -60,6 +73,14 @@ impl<B: Backend> burn::train::metric::ItemLazy for MetaIOutput<B> {
 impl<B: Backend> burn::train::metric::Adaptor<LossInput<B>> for MetaIOutput<B> {
     fn adapt(&self) -> LossInput<B> {
         LossInput::new(self.loss.clone())
+    }
+}
+
+impl<B: Backend> burn::train::metric::Adaptor<LossInput<B>> for MetaIOutputSync {
+    fn adapt(&self) -> LossInput<B> {
+        // 对于已同步的项，我们需要在一个（通常是 NdArray 或 CPU）后端重新构建它以满足 Adaptor 接口
+        // 但通常 Metric 会在不同的阶段调用不同的 Adaptor
+        LossInput::new(Tensor::from_floats([self.loss], &Default::default()))
     }
 }
 

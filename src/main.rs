@@ -1,3 +1,4 @@
+#![recursion_limit = "512"]
 use burn::module::Module;
 use clap::{Parser, Subcommand};
 use metai::backend::{get_device, MyBackend};

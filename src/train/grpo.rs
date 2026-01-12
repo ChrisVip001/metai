@@ -161,7 +161,8 @@ pub fn run_grpo_training(data_path: &str, model_dir: &str, output_dir: &str) -> 
         .build(dataset);
 
     let learner = LearnerBuilder::new(output_dir)
-        .metric_train_numeric(LossMetric::new())
+        .metric_train_numeric(LossMetric::<MyAutodiffBackend>::new())
+        .metric_valid_numeric(LossMetric::<MyAutodiffBackend>::new())
         .with_file_checkpointer(recorder)
         .num_epochs(config.num_epochs)
         .build(wrapper, config.optimizer.init(), config.learning_rate);

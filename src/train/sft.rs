@@ -82,8 +82,8 @@ pub fn run_sft_training(
 
     // 4. Build Learner
     let learner = LearnerBuilder::new(output_dir)
-        .metric_train_numeric(LossMetric::new())
-        .metric_valid_numeric(LossMetric::new())
+        .metric_train_numeric(LossMetric::<MyAutodiffBackend>::new())
+        .metric_valid_numeric(LossMetric::<MyAutodiffBackend>::new())
         .with_file_checkpointer(recorder)
         .grads_accumulation(config.grads_accumulation)
         .num_epochs(config.num_epochs)

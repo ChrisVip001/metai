@@ -63,8 +63,8 @@ pub fn train<B: AutodiffBackend>(
 
     // 4. 构建 Learner
     let learner_builder = LearnerBuilder::new(artifact_dir)
-        .metric_train_numeric(LossMetric::new())
-        .metric_valid_numeric(LossMetric::new())
+        .metric_train_numeric(LossMetric::<B>::new())
+        .metric_valid_numeric(LossMetric::<B>::new())
         .with_file_checkpointer(recorder)
         .grads_accumulation(config.grads_accumulation)
         .num_epochs(config.num_epochs)

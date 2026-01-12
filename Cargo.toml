@@ -32,6 +32,13 @@ derive_builder = "0.20"
 
 [profile.release]
 opt-level = 3
-lto = true
-codegen-units = 1
+lto = "thin"          # 兼顾性能与编译速度的最佳选择
+codegen-units = 16    # 允许并行编译，显著提升速度
 panic = 'abort'
+strip = "symbols"     # 剥离符号表，显著减少二进制体积（约 50%-80%）
+debug = false
+
+[profile.dev]
+opt-level = 0
+debug = 1             # 减少调试信息深度
+incremental = true    # 确保开启增量编译

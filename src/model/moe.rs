@@ -112,7 +112,7 @@ impl<B: Backend> MoE<B> {
                 let w_selected = k_weights
                     .clone()
                     .select(0, selected_indices.clone())
-                    .unsqueeze::<2>();
+                    .reshape([num_selected, 1]);
                 let weighted_out = expert_out * w_selected;
 
                 // Scatter: 加回主流

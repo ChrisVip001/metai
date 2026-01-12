@@ -66,8 +66,8 @@ cargo build --release
 
 # 启动训练 (自动开启 TUI 监控)
 cargo run --release -- train-small \
-    --chinese-path data/sample_zh.txt \
-    --english-path data/sample_en.txt \
+    --chinese-path 4in1.txt \
+    --english-path dataset.txt \
     --output-dir output_small
 ```
 

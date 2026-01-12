@@ -1,10 +1,8 @@
-use burn::backend::wgpu::WgpuDevice;
-use burn::backend::Autodiff;
-use burn::backend::Wgpu;
+use crate::backend::{get_device, MyAutodiffBackend, MyBackend};
 use burn::data::dataloader::DataLoaderBuilder;
 use burn::module::Module;
 use burn::tensor::backend::{AutodiffBackend, Backend};
-use burn::tensor::{Int, Tensor};
+use burn::tensor::{ElementConversion, Int, Tensor};
 use burn::train::metric::Adaptor;
 use burn::train::metric::LossMetric;
 
@@ -32,11 +30,37 @@ impl<B: Backend> Adaptor<burn::train::metric::LossInput<B>> for DPOOutput<B> {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct DPOOutputSync {
+    pub loss: f32,
+    pub chosen_reward: f32,
+    pub rejected_reward: f32,
+    pub accuracy: f32,
+}
+
 impl<B: Backend> burn::train::metric::ItemLazy for DPOOutput<B> {
-    type ItemSync = DPOOutput<B>;
+    type ItemSync = DPOOutputSync;
 
     fn sync(self) -> Self::ItemSync {
+        DPOOutputSync {
+            loss: self.loss.into_scalar().elem::<f32>(),
+            chosen_reward: self.chosen_reward.into_scalar().elem::<f32>(),
+            rejected_reward: self.rejected_reward.into_scalar().elem::<f32>(),
+            accuracy: self.accuracy,
+        }
+    }
+}
+
+impl burn::train::metric::ItemLazy for DPOOutputSync {
+    type ItemSync = Self;
+    fn sync(self) -> Self::ItemSync {
         self
+    }
+}
+
+impl<B: Backend> Adaptor<burn::train::metric::LossInput<B>> for DPOOutputSync {
+    fn adapt(&self) -> burn::train::metric::LossInput<B> {
+        burn::train::metric::LossInput::new(Tensor::from_floats([self.loss], &Default::default()))
     }
 }
 
@@ -290,7 +314,7 @@ pub fn run_dpo_training(
     model_dir: &str, // Checkpoint dir of SFT model
     output_dir: &str,
 ) -> anyhow::Result<()> {
-    let device = WgpuDevice::default();
+    let device = get_device();
 
     // 1. Config
     let mut config = MetaITrainingConfig::new(crate::model::MetaIConfig::small());
@@ -304,8 +328,8 @@ pub fn run_dpo_training(
 
     // 2. Data
     let dataset = PreferenceDataset::from_file(data_path, &tokenizer, config.model.max_seq_len)?;
-    let batcher = DPOBatcher::<Autodiff<Wgpu>>::new(device.clone(), pad_id);
-    let batcher_valid = DPOBatcher::<Wgpu>::new(device.clone(), pad_id);
+    let batcher = DPOBatcher::<MyAutodiffBackend>::new(device.clone(), pad_id);
+    let batcher_valid = DPOBatcher::<MyBackend>::new(device.clone(), pad_id);
 
     let dataloader_train = DataLoaderBuilder::new(batcher)
         .batch_size(config.batch_size)
@@ -356,8 +380,8 @@ pub fn run_dpo_training(
 
     // 4. Learner
     let learner = LearnerBuilder::new(output_dir)
-        .metric_train_numeric(LossMetric::new())
-        .metric_valid_numeric(LossMetric::new())
+        .metric_train_numeric(LossMetric::<MyAutodiffBackend>::new())
+        .metric_valid_numeric(LossMetric::<MyAutodiffBackend>::new())
         .with_file_checkpointer(recorder)
         .grads_accumulation(config.grads_accumulation)
         .num_epochs(config.num_epochs)

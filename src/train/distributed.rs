@@ -74,7 +74,7 @@ impl DistributedTrainer {
         let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
 
         let learner = LearnerBuilder::new(artifact_dir)
-            .metric_train_numeric(LossMetric::new())
+            .metric_train_numeric(LossMetric::<MyAutodiffBackend>::new())
             .with_file_checkpointer(recorder)
             .grads_accumulation(config.base_config.grads_accumulation)
             .num_epochs(config.base_config.num_epochs)
