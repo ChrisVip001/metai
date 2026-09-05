@@ -99,6 +99,23 @@ impl<B: AutodiffBackend> TrainStep<TextBatch<B>, MetaIOutput<B>> for MetaIModel<
             .init(&logits_flat.device())
             .forward(logits_flat, targets_flat);
 
+        // [DIAG-TEMP] 诊断打印：每步 loss 与 embedding 权重状态
+        let diag = std::env::var("METAI_DIAG").is_ok();
+        if diag {
+            let lv: f32 = loss.clone().into_scalar().elem::<f32>();
+            let emb = self.embedding.weight.val().clone();
+            let e_min: f32 = emb.clone().min().into_scalar().elem::<f32>();
+            let e_max: f32 = emb.clone().max().into_scalar().elem::<f32>();
+            let e_nan: f32 = emb.clone().is_nan().float().mean().into_scalar().elem::<f32>();
+            let out = self.output.weight.val().clone();
+            let o_min: f32 = out.clone().min().into_scalar().elem::<f32>();
+            let o_max: f32 = out.clone().max().into_scalar().elem::<f32>();
+            println!(
+                "[DIAG] step loss={:.4} emb[min={:.4},max={:.4},nan_ratio={:.6}] out[min={:.4},max={:.4}]",
+                lv, e_min, e_max, e_nan, o_min, o_max
+            );
+        }
+
         let grads = loss.backward();
 
         TrainOutput::new(self, grads, MetaIOutput { loss })
@@ -177,6 +194,7 @@ impl<B: Backend> ValidStep<SFTBatch<B>, MetaIOutput<B>> for MetaIModel<B> {
 pub mod distributed;
 pub mod dpo;
 pub mod grpo;
+pub mod grpo_rollout;
 pub mod grpo_train_step;
 pub mod reward;
 pub mod sft;

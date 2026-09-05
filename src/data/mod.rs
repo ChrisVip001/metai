@@ -85,8 +85,14 @@ impl MetaITokenizer {
     pub fn pad_id(&self) -> Option<u32> {
         self.tokenizer.token_to_id("<pad>")
     }
+
+    pub fn eos_id(&self) -> Option<u32> {
+        self.tokenizer.token_to_id("</s>")
+    }
 }
 
 pub mod data;
 pub mod dpo;
 pub mod sft;
+
+pub use self::sft::{GRPODataset, GRPOItem};

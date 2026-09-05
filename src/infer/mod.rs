@@ -8,6 +8,29 @@ use crate::model::{MetaIConfig, MetaIModel};
 
 pub mod cache;
 
+/// 从工件目录加载最新 epoch 的模型权重（与 `Generator::from_checkpoint` 共用）。
+///
+/// `config` 必须与训练时一致（Burn checkpoint 只保存权重，不保存结构）。
+pub fn load_model_from_checkpoint<B: Backend>(
+    artifact_dir: &str,
+    config: MetaIConfig,
+    pad_id: u32,
+    device: &B::Device,
+) -> anyhow::Result<MetaIModel<B>> {
+    let epoch = crate::train::find_latest_epoch(artifact_dir)
+        .ok_or_else(|| anyhow::anyhow!("No checkpoint found in {artifact_dir:?}"))?;
+
+    let model = MetaIModel::new(&config, pad_id, device);
+    let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
+    let model_path = std::path::Path::new(artifact_dir)
+        .join("checkpoint")
+        .join(format!("model-{}.bin", epoch));
+
+    model
+        .load_file(model_path, &recorder, device)
+        .map_err(|e| anyhow::anyhow!("Failed to load model {}: {}", epoch, e))
+}
+
 /// 文本生成器
 ///
 /// 封装了模型和分词器，提供了便捷的文本生成接口。
@@ -30,49 +53,8 @@ impl<B: Backend> Generator<B> {
         tokenizer: MetaITokenizer,
         device: &B::Device,
     ) -> anyhow::Result<Self> {
-        use std::path::Path;
-
-        let checkpoint_dir = Path::new(artifact_dir).join("checkpoint");
-        if !checkpoint_dir.exists() {
-            anyhow::bail!("Checkpoint directory not found: {:?}", checkpoint_dir);
-        }
-
-        // 查找最新的检查点
-        let mut max_epoch = 0;
-        if let Ok(entries) = std::fs::read_dir(&checkpoint_dir) {
-            for entry in entries.flatten() {
-                if let Some(file_name) = entry.file_name().to_str() {
-                    if file_name.starts_with("model-") && file_name.ends_with(".bin") {
-                        if let Some(epoch_str) = file_name
-                            .strip_prefix("model-")
-                            .and_then(|s| s.strip_suffix(".bin"))
-                        {
-                            if let Ok(epoch) = epoch_str.parse::<usize>() {
-                                if epoch > max_epoch {
-                                    max_epoch = epoch;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if max_epoch == 0 {
-            anyhow::bail!("No checkpoint found in {:?}", checkpoint_dir);
-        }
-
         let pad_id = tokenizer.pad_id().unwrap_or(0);
-        let model = MetaIModel::new(&config, pad_id, device);
-
-        let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
-        let model_path = checkpoint_dir.join(format!("model-{}.bin", max_epoch));
-
-        // 加载模型权重
-        let model = model
-            .load_file(&model_path, &recorder, device)
-            .map_err(|e| anyhow::anyhow!("Failed to load model: {}", e))?;
-
+        let model = load_model_from_checkpoint(artifact_dir, config, pad_id, device)?;
         Ok(Self { model, tokenizer })
     }
 

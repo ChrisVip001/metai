@@ -212,3 +212,87 @@ impl<B: Backend> Batcher<B, (Vec<u32>, Vec<u32>), SFTBatch<B>> for SFTBatcher<B>
         }
     }
 }
+
+// ============================ GRPO 数据集 ============================
+// GRPO 需要保留 prompt/response 边界（真 rollout 时按 prompt 采样多条 response），
+// SFT 的 (ids, mask) 不保留边界，因此单独定义。
+
+#[derive(Clone, Debug)]
+pub struct GRPOItem {
+    pub instruction: String,
+    pub prompt: Vec<u32>,
+    pub response: Vec<u32>, // teacher 参考响应（可做奖励对照，不直接参与 loss）
+}
+
+#[derive(Clone)]
+pub struct GRPODataset {
+    pub data: Vec<GRPOItem>,
+}
+
+impl GRPODataset {
+    pub fn from_file(
+        path: &str,
+        tokenizer: &MetaITokenizer,
+        max_length: usize,
+    ) -> anyhow::Result<Self> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let mut data = Vec::new();
+
+        let user_tag = "<|user|>\n";
+        let assistant_tag = "\n<|assistant|>\n";
+        let eos_tag = "<|endoftext|>";
+
+        for line in reader.lines() {
+            let line = line?;
+            if line.trim().is_empty() {
+                continue;
+            }
+
+            let item: InstructionItem = serde_json::from_str(&line)
+                .map_err(|e| anyhow::anyhow!("Failed to parse JSON line: {}", e))?;
+
+            let input_content = item.input.clone().unwrap_or_default();
+            let prompt_str = format!(
+                "{}{}{}{}",
+                user_tag, item.instruction, input_content, assistant_tag
+            );
+            let prompt_ids = tokenizer.encode(&prompt_str);
+
+            let response_str = format!("{}{}", item.output, eos_tag);
+            let response_ids = tokenizer.encode(&response_str);
+
+            if prompt_ids.is_empty() || response_ids.is_empty() {
+                continue;
+            }
+
+            // 截断：prompt 保留，response 截断到剩余空间
+            let mut resp = response_ids;
+            let budget = max_length.saturating_sub(prompt_ids.len());
+            if resp.len() > budget {
+                resp.truncate(budget);
+            }
+            if resp.is_empty() {
+                continue;
+            }
+
+            data.push(GRPOItem {
+                instruction: item.instruction,
+                prompt: prompt_ids,
+                response: resp,
+            });
+        }
+
+        Ok(Self { data })
+    }
+}
+
+impl Dataset<GRPOItem> for GRPODataset {
+    fn get(&self, index: usize) -> Option<GRPOItem> {
+        self.data.get(index).cloned()
+    }
+
+    fn len(&self) -> usize {
+        self.data.len()
+    }
+}

@@ -103,19 +103,46 @@ cargo run --release -- train-custom \
 
 ## 🧠 RLHF 强化学习与推理增强 (GRPO)
 
-MetaI 深度集成了推理增强技术，旨在让模型学会“思考”：
+MetaI 深度集成了推理增强技术，旨在让模型学会"思考"：
 
 ```bash
-# 针对数学、代码推理任务进行 GRPO 训练
+# 针对数学、代码推理任务进行 GRPO 训练（真实 rollout + 规则奖励）
 cargo run --release -- train-grpo \
-    --data data/math_reasoning.jsonl \
+    --data-path data/math_reasoning.jsonl \
     --model-dir checkpoints/sft_warmup \
-    --output-dir checkpoints/grpo_reasoning
+    --output-dir checkpoints/grpo_reasoning \
+    --reward rule \
+    --group-size 4 \
+    --max-new-tokens 128 \
+    --num-epochs 1 \
+    --learning-rate 5e-7
 ```
+
+数据为 JSONL：`{"instruction": "计算 12*7，答案：", "input": "", "output": "84"}`。
+采样使用策略在 `prompt` 上做 `group_size` 条响应，规则奖励组内归一化后做单步
+Policy-Gradient 更新并施加 KL(pi||ref) 惩罚，产物保存为 `{output-dir}/checkpoint/model-N.bin`。
 
 **算法优势：**
 - **Advantage Normalization**: 在每组 sample（Group Size 可配置）内部计算相对奖励，强制模型在组内竞争。
 - **Kullback–Leibler (KL) Penalty**: 自动控制 Policy 偏离 Reference 模型的程度，确保训练稳定性。
+- **奖励类型**: `rule`（答案匹配 + 格式）、`answer`（仅答案匹配）、`format`（仅格式）。
+
+### 量化与投机解码
+
+```bash
+# 量化（自动加载最新 epoch，替代旧硬编码 model-1.bin）
+cargo run --release -- quantize \
+    --input-path checkpoints/sft_warmup \
+    --output-path checkpoints/quant \
+    --tokenizer-path tokenizer.json
+
+# 投机解码：draft 用小模型/量化模型，target 用大模型
+cargo run --release -- generate-spec \
+    --prompt "1+1=" \
+    --model-dir checkpoints/grpo_reasoning \
+    --draft-dir checkpoints/quant \
+    --max-len 64 --lookahead 4
+```
 
 ---
 

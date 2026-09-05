@@ -1,19 +1,52 @@
-use crate::backend::{get_device, MyAutodiffBackend, MyBackend};
-use crate::data::MetaITokenizer;
-use crate::model::MetaIModel;
-use crate::train::MetaITrainingConfig;
-use burn::config::Config;
+//! GRPO 损失与训练超参数配置
+//!
+//! - [`GRPOLoss`]：组内归一化优势 + KL(pi||ref) 惩罚（单步 Vanilla Policy Gradient）。
+//! - [`GRPOConfig`]：rollout / 采样 / 奖励 的完整超参数（CLI 与训练共用）。
+//!
+//! 真正的训练入口（rollout -> 规则奖励 -> 手动优化循环）位于 `grpo_train_step.rs`。
+
 use burn::tensor::backend::Backend;
 use burn::tensor::{Int, Tensor};
-use burn::train::metric::LossMetric;
-use burn::train::LearnerBuilder;
 
-#[derive(Config, Debug)]
+use crate::train::reward::RewardKind;
+
+/// GRPO 训练超参数。
+///
+/// 注意：此处不用 `burn::config::Config` 派生，因为字段包含 `RewardKind` 这类
+/// 自定义枚举，`#[config(default = ...)]` 对其支持不稳定；改用手写 `Default`。
+#[derive(Clone, Debug, PartialEq)]
 pub struct GRPOConfig {
-    #[config(default = 0.1)]
-    pub beta: f64, // KL 惩罚系数
-    #[config(default = 0.2)]
-    pub clip_eps: f64, // PPO 裁剪 epsilon
+    /// KL 惩罚系数。
+    pub beta: f64,
+    /// 裁剪系数（保留字段，供将来 PPO-clip 变体使用）。
+    pub clip_eps: f64,
+    /// 每个 prompt 采样的响应数（组内基线要求 >= 2）。
+    pub group_size: usize,
+    /// rollout 最大新 token 数。
+    pub max_new_tokens: usize,
+    /// 规则奖励类型。
+    pub reward: RewardKind,
+    /// 采样温度。
+    pub temperature: f32,
+    /// Top-K 采样候选数。
+    pub top_k: usize,
+    /// Top-P 累积概率截断。
+    pub top_p: f32,
+}
+
+impl Default for GRPOConfig {
+    fn default() -> Self {
+        Self {
+            beta: 0.1,
+            clip_eps: 0.2,
+            group_size: 4,
+            max_new_tokens: 96,
+            reward: RewardKind::Rule,
+            temperature: 0.9,
+            top_k: 50,
+            top_p: 0.95,
+        }
+    }
 }
 
 pub struct GRPOLoss<B: Backend> {
@@ -57,98 +90,21 @@ impl<B: Backend> GRPOLoss<B> {
             .reshape([batch_size, group_size, 1])
             .expand([batch_size, group_size, seq_len]);
 
-        // 2. 计算 Ratio (重要性采样)
-        // ratio = exp(log_pi - log_ref) = pi / ref
-        // 注意：这里假设 policy_logprobs 是相对于 old_policy 的 (PPO 风格)，
-        // 但 GRPO 通常简化为相对于 Reference 或只做单步更新。
-        // 如果是单步 GRPO (如 DeepSeekMath)，通常直接优化 log_pi * A - beta * KL
-        // DeepSeek-V3 论文公式: E [ (pi/pi_old) * A ] ... ?
-        // 实际上 GRPO 往往结合 PPO:
-        // ratio = exp(log_probs - old_log_probs)
-        // 这里为了简化，我们假设 old_policy == ref_model (即第一步) 或者我们维护了 old_log_probs。
-        // 在此实现中，我们计算 log_pi * A - beta * KL(pi || ref) 的简化形式 (带组基线的 Vanilla Policy Gradient)
-        // 或者实现完整的 PPO-GRPO。
-
-        // 我们实现带 KL 惩罚的 Policy Gradient: LOSS = - (mean(log_pi * A) - beta * KL)
-
-        // KL(pi || ref) 近似 = log_pi - log_ref
-        let kl = policy_logprobs.clone() - ref_logprobs;
-
-        // 对应每个 token 的损失项
-        // 目标：最大化 (log_pi * A - beta * KL)
+        // 2. 简化 GRPO：带组基线的 Policy Gradient + KL 惩罚
+        // 目标：最大化 (log_pi * A - beta * KL(pi || ref))
         // 损失：最小化 -(log_pi * A - beta * KL)
+        let kl = policy_logprobs.clone() - ref_logprobs;
         let token_loss = (policy_logprobs * advantages) - (kl * self.config.beta);
 
         // Mask 遮罩
         let mask = mask.float();
         let token_loss = token_loss * mask.clone();
 
-        // Average over valid tokens
+        // 仅在有效 token 上平均
         let loss = -token_loss.sum() / (mask.sum() + 1e-8);
 
         loss.reshape([1])
     }
-}
-
-pub fn run_grpo_training(data_path: &str, model_dir: &str, output_dir: &str) -> anyhow::Result<()> {
-    let device = get_device();
-    let group_size = 4;
-
-    // 1. 配置
-    let mut config = MetaITrainingConfig::new(crate::model::MetaIConfig::small());
-    config.learning_rate = 5e-7;
-    config.num_epochs = 1;
-    config.batch_size = 2; // 组的批大小 (Batch of groups)
-    config.tokenizer_path = "tokenizer.json".to_string();
-
-    let tokenizer = MetaITokenizer::new(&config.tokenizer_path)?;
-    let pad_id = tokenizer.pad_id().unwrap_or(0);
-
-    // 2. 数据 (复用 SFT 逻辑，但将其解释为组形式)
-    let dataset = crate::data::sft::InstructionDataset::from_file(
-        data_path,
-        &tokenizer,
-        config.model.max_seq_len,
-    )?;
-
-    // 3. 加载 Policy (策略模型) 和 Reference (参考模型)
-    use burn::record::{BinFileRecorder, FullPrecisionSettings};
-    let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
-
-    let policy_model = MetaIModel::new(&config.model, pad_id, &device);
-    let policy_model = crate::train::load_model_checkpoint(policy_model, model_dir, &device);
-
-    let ref_model = MetaIModel::new(&config.model, pad_id, &device);
-    let ref_model = crate::train::load_model_checkpoint(ref_model, model_dir, &device);
-
-    // 4. Wrapper 包装器与 Learner 训练器
-    let wrapper =
-        crate::train::grpo_train_step::GRPOTrainWrapper::new(policy_model, ref_model, group_size);
-
-    let batcher = crate::data::sft::SFTBatcher::<MyAutodiffBackend>::new(device.clone(), pad_id);
-    let batcher_valid = crate::data::sft::SFTBatcher::<MyBackend>::new(device.clone(), pad_id);
-
-    let dataloader_train = burn::data::dataloader::DataLoaderBuilder::new(batcher)
-        .batch_size(config.batch_size * group_size)
-        .shuffle(config.seed)
-        .num_workers(4)
-        .build(dataset.clone());
-
-    let dataloader_valid = burn::data::dataloader::DataLoaderBuilder::new(batcher_valid)
-        .batch_size(config.batch_size * group_size)
-        .num_workers(4)
-        .build(dataset);
-
-    let learner = LearnerBuilder::new(output_dir)
-        .metric_train_numeric(LossMetric::<MyAutodiffBackend>::new())
-        .metric_valid_numeric(LossMetric::<MyAutodiffBackend>::new())
-        .with_file_checkpointer(recorder)
-        .num_epochs(config.num_epochs)
-        .build(wrapper, config.optimizer.init(), config.learning_rate);
-
-    let _ = learner.fit(dataloader_train, dataloader_valid);
-
-    Ok(())
 }
 
 #[cfg(test)]
@@ -161,7 +117,7 @@ mod tests {
     #[test]
     fn test_grpo_loss_basic() {
         let device = get_device();
-        let config = GRPOConfig::new();
+        let config = GRPOConfig::default();
         let grpo = GRPOLoss::<TestBackend>::new(config);
 
         // Batch=1, Group=2, Seq=3
@@ -169,27 +125,56 @@ mod tests {
         let group_size = 2;
         let seq_len = 3;
 
-        // 1. 奖励：组 0 -> 1.0, 组 1 -> 2.0
-        // Mean = 1.5, Std = 0.5 (近似值，总体方差与样本方差有差异但逻辑通顺)
-        // Adv 0 < 0, Adv 1 > 0
+        // 1. 奖励：组内 [1.0, 2.0] -> Adv0 < 0, Adv1 > 0
         let rewards = Tensor::<TestBackend, 2>::from_floats([[1.0, 2.0]], &device);
 
-        // 2. Policy Logprobs (接近 Ref)
+        // 2. Policy/Ref Logprobs 全 0 => KL=0
         let policy_lp = Tensor::<TestBackend, 3>::zeros([batch_size, group_size, seq_len], &device);
         let ref_lp = Tensor::<TestBackend, 3>::zeros([batch_size, group_size, seq_len], &device);
-
         let mask = Tensor::<TestBackend, 3, Int>::ones([batch_size, group_size, seq_len], &device);
 
-        // Loss = - (Mean(log_pi * A - beta * 0)) = - Mean(0 * A) = 0
-        let loss = grpo.forward(
-            policy_lp.clone(),
-            ref_lp.clone(),
-            rewards.clone(),
-            mask.clone(),
-        );
-
-        // 断言 Loss 接近 0
+        // Loss = -(mean(log_pi * A - beta * 0)) = 0
+        let loss = grpo.forward(policy_lp.clone(), ref_lp.clone(), rewards.clone(), mask.clone());
         let loss_val = loss.into_scalar();
         assert!(loss_val.abs() < 1e-5);
+    }
+
+    #[test]
+    fn test_grpo_loss_prefers_better_response() {
+        let device = get_device();
+        let config = GRPOConfig::default();
+        let grpo = GRPOLoss::<TestBackend>::new(config);
+
+        let batch_size = 1;
+        let group_size = 2;
+        let seq_len = 3;
+
+        let rewards = Tensor::<TestBackend, 2>::from_floats([[1.0, -1.0]], &device);
+        let ref_lp = Tensor::<TestBackend, 3>::zeros([batch_size, group_size, seq_len], &device);
+        let mask = Tensor::<TestBackend, 3, Int>::ones([batch_size, group_size, seq_len], &device);
+
+        let run = |policy_lp: Tensor<TestBackend, 3>| -> f32 {
+            grpo.forward(policy_lp, ref_lp.clone(), rewards.clone(), mask.clone())
+                .into_scalar()
+        };
+
+        // 好：policy 给高奖励样本(row0)更高概率 -> 该方向 loss 更低
+        let good = Tensor::<TestBackend, 3>::from_floats(
+            [[[-0.1, -0.1, -0.1], [-1.0, -1.0, -1.0]]],
+            &device,
+        );
+        let good_loss = run(good);
+
+        // 坏：policy 给低奖励样本(row1)更高概率
+        let bad = Tensor::<TestBackend, 3>::from_floats(
+            [[[-1.0, -1.0, -1.0], [-0.1, -0.1, -0.1]]],
+            &device,
+        );
+        let bad_loss = run(bad);
+
+        assert!(
+            good_loss < bad_loss,
+            "policy 应倾向高奖励样本: good={good_loss}, bad={bad_loss}"
+        );
     }
 }

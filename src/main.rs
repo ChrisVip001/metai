@@ -88,6 +88,23 @@ enum Commands {
         #[arg(short, long, default_value_t = 0.9)]
         top_p: f32,
     },
+    /// 投机解码生成（draft 模型 + target 模型）
+    GenerateSpec {
+        #[arg(short, long)]
+        prompt: String,
+        #[arg(short, long, default_value = "tokenizer.json")]
+        tokenizer_path: String,
+        #[arg(long, default_value_t = 50)]
+        max_len: usize,
+        #[arg(long, default_value = "/tmp/metai_local")]
+        model_dir: String,
+        #[arg(long, default_value = "/tmp/metai_local_quant")]
+        draft_dir: String,
+        #[arg(long, default_value_t = 4)]
+        lookahead: usize,
+        #[arg(long, default_value_t = 0.8)]
+        temperature: f32,
+    },
     /// 运行 SFT 指令微调
     TrainSft {
         #[arg(short, long)]
@@ -106,7 +123,7 @@ enum Commands {
         #[arg(short, long, default_value = "/tmp/metai_dpo")]
         output_dir: String,
     },
-    /// 运行 GRPO 强化学习
+    /// 运行 GRPO 强化学习（真实 rollout + 规则奖励）
     TrainGrpo {
         #[arg(short, long)]
         data_path: String,
@@ -114,6 +131,26 @@ enum Commands {
         model_dir: String,
         #[arg(short, long, default_value = "/tmp/metai_grpo")]
         output_dir: String,
+        #[arg(long, default_value = "tokenizer.json")]
+        tokenizer_path: String,
+        #[arg(long, default_value_t = 1)]
+        num_epochs: usize,
+        #[arg(long, default_value_t = 5e-7)]
+        learning_rate: f64,
+        #[arg(long, default_value_t = 2)]
+        batch_size: usize,
+        #[arg(long, default_value_t = 4)]
+        group_size: usize,
+        #[arg(long, default_value_t = 96)]
+        max_new_tokens: usize,
+        #[arg(long, value_enum, default_value = "rule")]
+        reward: metai::train::reward::RewardKind,
+        #[arg(long, default_value_t = 0.9)]
+        temperature: f32,
+        #[arg(long, default_value_t = 50)]
+        top_k: usize,
+        #[arg(long, default_value_t = 0.95)]
+        top_p: f32,
     },
     /// 对模型进行 INT4 量化
     Quantize {
@@ -257,8 +294,70 @@ fn main() -> anyhow::Result<()> {
             data_path,
             model_dir,
             output_dir,
+            tokenizer_path,
+            num_epochs,
+            learning_rate,
+            batch_size,
+            group_size,
+            max_new_tokens,
+            reward,
+            temperature,
+            top_k,
+            top_p,
         } => {
-            metai::train::grpo::run_grpo_training(&data_path, &model_dir, &output_dir)?;
+            println!("Starting GRPO RL Training...");
+            let mut tcfg = metai::train::MetaITrainingConfig::new(MetaIConfig::small());
+            tcfg.tokenizer_path = tokenizer_path;
+            tcfg.num_epochs = num_epochs;
+            tcfg.learning_rate = learning_rate;
+            tcfg.batch_size = batch_size;
+            let grpo_cfg = metai::train::grpo::GRPOConfig {
+                beta: 0.1,
+                clip_eps: 0.2,
+                group_size,
+                max_new_tokens,
+                reward,
+                temperature,
+                top_k,
+                top_p,
+            };
+            metai::train::grpo_train_step::run_grpo_training(
+                &data_path,
+                &model_dir,
+                &output_dir,
+                &tcfg,
+                &grpo_cfg,
+            )?;
+        }
+        Commands::GenerateSpec {
+            prompt,
+            tokenizer_path,
+            max_len,
+            model_dir,
+            draft_dir,
+            lookahead,
+            temperature,
+        } => {
+            let tokenizer = MetaITokenizer::new(&tokenizer_path)?;
+            let config = MetaIConfig::small();
+            let device = get_device();
+            let pad_id = tokenizer.pad_id().unwrap_or(0);
+            let target = metai::infer::load_model_from_checkpoint::<MyBackend>(
+                &model_dir,
+                config.clone(),
+                pad_id,
+                &device,
+            )?;
+            let draft = metai::infer::load_model_from_checkpoint::<MyBackend>(
+                &draft_dir,
+                config,
+                pad_id,
+                &device,
+            )?;
+            let generator = metai::infer::SpeculativeGenerator::new(draft, target, tokenizer);
+            println!("投机解码生成中 (lookahead={})...", lookahead);
+            let output = generator.generate(&prompt, max_len, lookahead, temperature);
+            println!("\n=== 生成结果 ===\n{}", output);
         }
         Commands::Quantize {
             input_path,
@@ -277,9 +376,15 @@ fn main() -> anyhow::Result<()> {
             let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
             let model: metai::MetaIModel<MyBackend> =
                 metai::MetaIModel::new(&config, tokenizer.pad_id().unwrap_or(0), &device);
+            // 取最新 epoch（替代硬编码 model-1.bin）
+            let epoch = metai::train::find_latest_epoch(&input_path)
+                .ok_or_else(|| anyhow::anyhow!("No checkpoint found in {}", input_path))?;
             let checkpoint_path = std::path::Path::new(&input_path).join("checkpoint");
-            // 简单取 model-1.bin 逻辑，实际需 find_latest_epoch
-            let model = model.load_file(checkpoint_path.join("model-1.bin"), &recorder, &device)?;
+            let model = model.load_file(
+                checkpoint_path.join(format!("model-{}.bin", epoch)),
+                &recorder,
+                &device,
+            )?;
             let quantized = model.quantize_int4(&device);
             std::fs::create_dir_all(&output_path)?;
             quantized.save_file(
