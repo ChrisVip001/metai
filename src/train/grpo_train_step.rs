@@ -1,287 +1,196 @@
-//! GRPO 强化学习训练：真正的 rollout（策略自回归采样）+ 规则奖励 + 组内基线
-//!
-//! 与旧实现的关键差异：
-//! - 旧：直接拿 SFT 数据当 rollout，rewards 全 0，loss 恒为 KL 正则（模型学不到奖励信号）
-//! - 新：每个 prompt 用策略采样 group_size 条响应 -> 规则奖励打分 -> 组内归一化优势
-//!       -> 在采样序列上重算 policy/ref logprob -> GRPO loss -> 单次参数更新
+//! Collect a batch on-policy, then make two updates on those same frozen trajectories.
+use super::{
+    grpo::{advantages, policy_loss, Algorithm},
+    grpo_rollout::{rollout_one, SamplingConfig},
+    reward::RewardKind,
+    *,
+};
+use crate::{
+    backend::get_device,
+    data::{sft::SFTBatcher, GRPODataset},
+};
+use burn::{data::dataloader::batcher::Batcher, nn::LinearConfig};
+use rand::{rngs::StdRng, seq::SliceRandom, SeedableRng};
 
-use std::path::Path;
-
-use burn::module::Module;
-use burn::optim::{GradientsParams, Optimizer};
-use burn::record::{BinFileRecorder, FullPrecisionSettings};
-use burn::tensor::activation::log_softmax;
-use burn::tensor::backend::AutodiffBackend;
-use burn::tensor::{Int, Tensor};
-use rand::rngs::StdRng;
-use rand::seq::SliceRandom;
-use rand::SeedableRng;
-
-use crate::backend::{get_device, MyAutodiffBackend};
-use crate::data::{GRPODataset, MetaITokenizer};
-use crate::model::{MetaIConfig, MetaIModel};
-use crate::train::grpo::GRPOLoss;
-use crate::train::grpo_rollout::{rollout_one, SamplingConfig};
-use crate::train::reward::RewardKind;
-use crate::train::MetaITrainingConfig;
-
-/// 执行一步 GRPO：rollout -> reward -> loss（不更新参数）
-#[allow(clippy::too_many_arguments)]
-fn grpo_loss_step<B: AutodiffBackend>(
-    policy: &MetaIModel<B>,
-    reference: &MetaIModel<B>,
-    tokenizer: &MetaITokenizer,
-    dataset: &GRPODataset,
-    chunk: &[usize],
-    group_size: usize,
-    max_new_tokens: usize,
-    sampling: &SamplingConfig,
-    reward_kind: RewardKind,
-    pad_id: u32,
-    eos_id: u32,
-    device: &B::Device,
-    grpo_loss: &GRPOLoss<B>,
-    rng: &mut StdRng,
-) -> anyhow::Result<Tensor<B, 1>> {
-    let num_groups = chunk.len();
-    let num_rows = num_groups * group_size;
-
-    // ---- 1. 对每个 prompt rollout group_size 条响应 ----
-    let mut rows: Vec<Vec<u32>> = Vec::with_capacity(num_rows);
-    let mut prompt_lens: Vec<usize> = Vec::with_capacity(num_rows);
-    let mut row_lengths: Vec<usize> = Vec::with_capacity(num_rows);
-    let mut reward_flat: Vec<f32> = Vec::with_capacity(num_rows);
-    let mut row_instructions: Vec<String> = Vec::with_capacity(num_groups);
-
-    for &idx in chunk {
-        let item = &dataset.data[idx];
-        row_instructions.push(item.instruction.clone());
-
-        // rollout
-        let mut responses: Vec<Vec<u32>> = Vec::with_capacity(group_size);
-        for _ in 0..group_size {
-            let resp = rollout_one(
-                policy,
-                device,
-                &item.prompt,
-                max_new_tokens,
-                sampling,
-                eos_id,
-                rng,
-            );
-            responses.push(resp);
-        }
-
-        // 解码成文本做规则奖励
-        let response_texts: Vec<String> = responses
-            .iter()
-            .map(|ids| tokenizer.decode(ids))
-            .collect();
-        let group_rewards: Vec<f32> = response_texts
-            .iter()
-            .map(|text| reward_kind.score(&item.instruction, text, 4, 512))
-            .collect();
-
-        for (resp, rew) in responses.iter().zip(group_rewards.iter()) {
-            let mut row = item.prompt.clone();
-            row.extend(resp.iter().copied());
-            prompt_lens.push(item.prompt.len());
-            row_lengths.push(row.len());
-            rows.push(row);
-            reward_flat.push(*rew);
-        }
+/// Compare the frozen teacher's likelihoods of two verdicts, including multi-token verdicts.
+fn judge(ck: &Checkpoint, question: &str, candidate: &str, device: &Device) -> Result<f32> {
+    let prompt = ck.tokenizer.encode(&format!(
+        "Question: {question}\nCandidate: {candidate}\nCorrect?"
+    ));
+    let verdicts = [" yes", " no"];
+    let mut scores = [0.; 2];
+    for (index, verdict) in verdicts.iter().enumerate() {
+        let answer = ck.tokenizer.encode(verdict);
+        ensure!(
+            !answer.is_empty() && prompt.len() + answer.len() <= ck.config.max_seq_len,
+            "judge context exhausted"
+        );
+        let mut ids = prompt.clone();
+        ids.extend(&answer);
+        let mut mask = vec![0; prompt.len()];
+        mask.extend(vec![1; answer.len()]);
+        let b = SFTBatcher::new(device.clone(), ck.model.pad_id).batch(vec![(ids, mask)], device);
+        scores[index] = (token_logps(ck.model.forward(b.inputs, None, None), b.targets)
+            * b.mask.float())
+        .sum()
+        .into_scalar::<f32>();
     }
-
-    let max_len = *row_lengths.iter().max().unwrap_or(&1);
-    if max_len <= 1 {
-        anyhow::bail!("rollout 序列为空, 请检查数据/模型输出");
-    }
-    // 预测时输入长度 = max_len - 1（最后一个位置无需预测）
-    let seq = max_len - 1;
-
-    // ---- 2. 组装 pad 后的输入 / 目标 / mask ----
-    // 注意：各 rollout 行长度不同，必须先把每行补 pad 到 max_len，
-    // 否则短行会在 `row[t]`/`row[t+1]` 处索引越界。
-    let rows_padded: Vec<Vec<u32>> = rows
-        .iter()
-        .map(|row| {
-            let mut r = row.clone();
-            r.resize(max_len, pad_id);
-            r
-        })
-        .collect();
-    let mut input_i32 = vec![pad_id as i32; num_rows * seq];
-    let mut target_i32 = vec![pad_id as i32; num_rows * seq];
-    let mut mask_i32 = vec![0i32; num_rows * seq];
-    for (r, row) in rows_padded.iter().enumerate() {
-        let plen = prompt_lens[r];
-        let row_len = row_lengths[r];
-        for t in 0..seq {
-            // 位置 t 的输入 = row[t]，预测目标 = row[t+1]
-            input_i32[r * seq + t] = row[t] as i32;
-            target_i32[r * seq + t] = row[t + 1] as i32;
-            // mask：目标为响应 token 且非 pad（t+1 >= plen 表示目标位于响应区）
-            let is_response = (t + 1) >= plen && (t + 1) < row_len;
-            if is_response {
-                mask_i32[r * seq + t] = 1;
-            }
-        }
-    }
-
-    let input_t = Tensor::<B, 2, Int>::from_data(
-        burn::tensor::TensorData::new(input_i32, [num_rows, seq]),
-        device,
-    );
-    let target_t = Tensor::<B, 2, Int>::from_data(
-        burn::tensor::TensorData::new(target_i32, [num_rows, seq]),
-        device,
-    );
-    let mask_t = Tensor::<B, 3, Int>::from_data(
-        burn::tensor::TensorData::new(mask_i32, [num_groups, group_size, seq]),
-        device,
-    );
-
-    // ---- 3. Policy / Reference logprob（在采样序列上）----
-    let gather = |model: &MetaIModel<B>| -> Tensor<B, 3> {
-        let logits = model.forward(input_t.clone(), None, None);
-        let logits = log_softmax(logits, 2); // [rows, seq, V]
-        let target3 = target_t.clone().unsqueeze::<3>(); // [rows, seq, 1]
-        logits
-            .gather(2, target3)
-            .squeeze::<3>() // [rows, seq]
-            .reshape([num_groups, group_size, seq])
-    };
-
-    let policy_logps = gather(policy);
-    let ref_logps = gather(reference).detach();
-
-    let rewards = Tensor::<B, 2>::from_data(
-        burn::tensor::TensorData::new(reward_flat, [num_groups, group_size]),
-        device,
-    );
-
-    // ---- 4. GRPO loss ----
-    Ok(grpo_loss.forward(policy_logps, ref_logps, rewards, mask_t))
+    Ok(1. / (1. + (scores[1] - scores[0]).exp()))
 }
 
-/// GRPO 主入口：手写训练循环（Learner 的 wrapper 限制无法承载 rollout）
-#[allow(clippy::too_many_arguments)]
-pub fn run_grpo_training(
-    data_path: &str,
-    model_dir: &str,
-    output_dir: &str,
-    tcfg: &MetaITrainingConfig,
-    grpo_cfg: &crate::train::grpo::GRPOConfig,
-) -> anyhow::Result<()> {
-    let device = get_device();
-    let tokenizer = MetaITokenizer::new(&tcfg.tokenizer_path)?;
-    let pad_id = tokenizer.pad_id().unwrap_or(0);
-    let eos_id = tokenizer.eos_id().unwrap_or(2);
+#[derive(clap::Args)]
+pub struct RolloutConfig {
+    #[arg(long, default_value_t = 4)]
+    pub group_size: usize,
+    #[arg(long, default_value_t = 8)]
+    pub max_new_tokens: usize,
+    #[arg(long, value_enum, default_value = "rule")]
+    pub reward: RewardKind,
+    /// Optional frozen yes/no judge checkpoint, for local AI feedback.
+    #[arg(long)]
+    pub judge_dir: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = 0.2)]
+    pub clip: f64,
+    #[arg(long, default_value_t = 0.02)]
+    pub beta: f64,
+}
 
-    let dataset = GRPODataset::from_file(data_path, &tokenizer, tcfg.model.max_seq_len)?;
-    if dataset.data.is_empty() {
-        anyhow::bail!("GRPO 数据集为空: {data_path}");
-    }
-    println!(
-        "GRPO dataset: {} items, group_size={}, max_new_tokens={}",
-        dataset.data.len(),
-        grpo_cfg.group_size,
-        grpo_cfg.max_new_tokens
+pub fn run(
+    data: &str,
+    dir: &Path,
+    output: &Path,
+    schedule: &Schedule,
+    method: Algorithm,
+    cfg: &RolloutConfig,
+) -> Result<()> {
+    schedule.validate()?;
+    ensure!(
+        cfg.group_size >= 2
+            && cfg.max_new_tokens > 0
+            && cfg.clip > 0.
+            && cfg.clip < 1.
+            && cfg.beta.is_finite()
+            && cfg.beta >= 0.,
+        "invalid rollout parameters"
     );
-    if grpo_cfg.group_size < 2 {
-        anyhow::bail!("GRPO group_size 必须 >= 2 (组内基线需要至少 2 条响应)");
-    }
-
-    // 加载 policy 与 reference（同一 SFT checkpoint）
-    let model_cfg: MetaIConfig = tcfg.model.clone();
-    let policy_init = MetaIModel::<MyAutodiffBackend>::new(&model_cfg, pad_id, &device);
-    let mut policy = crate::train::load_model_checkpoint(policy_init, model_dir, &device);
-    let reference = MetaIModel::<MyAutodiffBackend>::new(&model_cfg, pad_id, &device);
-    let reference = crate::train::load_model_checkpoint(reference, model_dir, &device);
-
-    // burn 0.19: AdamWConfig::init() 返回 OptimizerAdaptor<AdamW, M, B>，
-    // M 由后续 step() 调用推断为 MetaIModel<MyAutodiffBackend>。
-    let mut optimizer = tcfg.optimizer.init();
-    let sampling = SamplingConfig {
-        temperature: grpo_cfg.temperature,
-        top_k: grpo_cfg.top_k,
-        top_p: grpo_cfg.top_p,
-    };
-    let grpo_loss = GRPOLoss::<MyAutodiffBackend>::new(grpo_cfg.clone());
-
-    let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
-    let checkpoint_dir = Path::new(output_dir).join("checkpoint");
-    std::fs::create_dir_all(&checkpoint_dir)?;
-
-    let batch_size = tcfg.batch_size.max(1);
-    let mut global_step = 0usize;
-
-    for epoch in 1..=tcfg.num_epochs {
-        // 打乱数据顺序
-        let mut order: Vec<usize> = (0..dataset.data.len()).collect();
-        let mut rng = StdRng::seed_from_u64(tcfg.seed as u64 + epoch as u64 * 1_000_003);
-        order.shuffle(&mut rng);
-
-        let mut epoch_loss_sum = 0.0f64;
-        let mut epoch_steps = 0usize;
-
-        for chunk in order.chunks(batch_size) {
-            let loss = grpo_loss_step(
-                &policy,
-                &reference,
-                &tokenizer,
-                &dataset,
-                chunk,
-                grpo_cfg.group_size,
-                grpo_cfg.max_new_tokens,
-                &sampling,
-                grpo_cfg.reward,
-                pad_id,
-                eos_id,
-                &device,
-                &grpo_loss,
-                &mut rng,
-            )?;
-
-            let loss_val: f32 = loss.clone().into_scalar();
-            if !loss_val.is_finite() {
-                eprintln!("[warn] step {global_step} 出现非有限 loss ({loss_val})，跳过更新");
-                continue;
-            }
-
-            // 手动优化一步（只更新 policy）
-            let grads = loss.backward();
-            let grads_params = GradientsParams::from_grads(grads, &policy);
-            policy = optimizer.step(tcfg.learning_rate, policy, grads_params);
-
-            epoch_loss_sum += loss_val as f64;
-            epoch_steps += 1;
-            global_step += 1;
-
-            if global_step % 5 == 0 || global_step <= 3 {
-                println!(
-                    "[GRPO] epoch={epoch} step={global_step} loss={loss_val:.4}"
-                );
-            }
+    let device = get_device().autodiff();
+    device.seed(schedule.seed);
+    let mut ck = Checkpoint::load(dir, &device)?;
+    let ds = GRPODataset::from_file(data, &ck.tokenizer, ck.config.max_seq_len)?;
+    ensure!(!ds.data.is_empty() && ds.data.iter().all(|r|r.prompt.len().saturating_add(cfg.max_new_tokens)<=ck.config.max_seq_len), "empty dataset or rollout exceeds context");
+    let judge_device = device.clone().inner();
+    let teacher = cfg
+        .judge_dir
+        .as_ref()
+        .map(|p| Checkpoint::load(p, &judge_device))
+        .transpose()?;
+    println!(
+        "feedback={}",
+        if teacher.is_some() {
+            "frozen_yes_no_judge"
+        } else {
+            "rule"
         }
-
-        if epoch_steps > 0 {
+    );
+    let reference = ck.model.clone().no_grad();
+    let mut critic = LinearConfig::new(ck.config.hidden_dim, 1).init(&device);
+    let mut critic_opt = AdamWConfig::new().init();
+    let mut optimizer = AdamWConfig::new().init();
+    let eos = ck.tokenizer.eos_id().context("missing eos")?;
+    let batcher = SFTBatcher::new(device.clone(), ck.model.pad_id);
+    let sampling = SamplingConfig {
+        temperature: 1.,
+        top_k: 0,
+        top_p: 1.,
+    };
+    let mut rng = StdRng::seed_from_u64(schedule.seed);
+    let mut order: Vec<_> = (0..ds.data.len()).collect();
+    for epoch in 1..=schedule.num_epochs {
+        order.shuffle(&mut rng);
+        for indices in order.chunks(schedule.batch_size) {
+            let old = ck.model.clone().no_grad();
+            let mut sequences = Vec::new();
+            let mut reward_values = Vec::new();
+            let mut group_adv = Vec::new();
+            for &i in indices {
+                let row = &ds.data[i];
+                let mut group = Vec::new();
+                for _ in 0..cfg.group_size {
+                    let response = rollout_one(
+                        &old,
+                        &device,
+                        &row.prompt,
+                        cfg.max_new_tokens,
+                        &sampling,
+                        eos,
+                        &mut rng,
+                    );
+                    let answer = ck.tokenizer.decode(&response);
+                    let score = match &teacher {
+                        Some(j) => judge(j, &row.instruction, &answer, &judge_device)?,
+                        None => cfg.reward.score(&row.answer, &answer, 4, 512),
+                    };
+                    group.push(score);
+                    let mut mask = vec![0; row.prompt.len()];
+                    mask.extend(vec![1; response.len()]);
+                    let mut ids = row.prompt.clone();
+                    ids.extend(response);
+                    sequences.push((ids, mask));
+                }
+                group_adv.extend(advantages(&group));
+                reward_values.extend(group);
+            }
+            let b = batcher.batch(sequences, &device);
+            let [n, s] = b.inputs.dims();
+            let logps = |model: &MetaIModel| {
+                token_logps(
+                    model.forward(b.inputs.clone(), None, None),
+                    b.targets.clone(),
+                )
+            };
+            let old_lp = logps(&old).detach();
+            let ref_lp = logps(&reference).detach();
+            let rewards = Tensor::<1>::from_floats(reward_values.as_slice(), &device)
+                .reshape([n, 1])
+                .expand([n, s]);
+            let mask = b.mask.float();
+            // Terminal reward, gamma=lambda=1. The baseline sees only the prefix of each action.
+            let adv = if method == Algorithm::Ppo {
+                let h = old.hidden(b.inputs.clone(), None, None).detach();
+                let v = critic.forward(h).reshape([n, s]);
+                let advantage = rewards - v;
+                let loss = (advantage.clone().square() * mask.clone()).sum() / mask.clone().sum();
+                let grad = GradientsParams::from_grads(loss.backward(), &critic);
+                critic = critic_opt.step(schedule.learning_rate, critic, grad);
+                advantage.detach()
+            } else {
+                Tensor::<1>::from_floats(group_adv.as_slice(), &device)
+                    .reshape([n, 1])
+                    .expand([n, s])
+            };
+            for _ in 0..2 {
+                let loss = policy_loss(
+                    method,
+                    logps(&ck.model),
+                    old_lp.clone(),
+                    ref_lp.clone(),
+                    adv.clone(),
+                    mask.clone(),
+                    cfg.clip,
+                    cfg.beta,
+                );
+                ensure!(
+                    loss.clone().into_scalar::<f32>().is_finite(),
+                    "nonfinite policy loss"
+                );
+                let grads = GradientsParams::from_grads(loss.backward(), &ck.model);
+                ck.model = optimizer.step(schedule.learning_rate, ck.model, grads);
+            }
             println!(
-                "[GRPO] epoch {epoch} 完成, avg_loss={:.4}, steps={}",
-                epoch_loss_sum / epoch_steps as f64,
-                epoch_steps
+                "epoch={epoch} method={method:?} rollouts={n} mean_reward={:.4}",
+                reward_values.iter().sum::<f32>() / n as f32
             );
         }
-
-        // 每个 epoch 保存 policy checkpoint（与其它训练产物兼容 model-N.bin）。
-        // Module derive 自动实现 Clone，因此克隆一份用于按值消费的 save_file。
-        let save_path = checkpoint_dir.join(format!("model-{}.bin", epoch));
-        policy
-            .clone()
-            .save_file(&save_path, &recorder)
-            .map_err(|e| anyhow::anyhow!("保存 GRPO checkpoint 失败: {e}"))?;
-        println!("[GRPO] 已保存 checkpoint: {}", save_path.display());
     }
-
-    Ok(())
+    ck.save(output)
 }

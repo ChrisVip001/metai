@@ -4,33 +4,30 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["wgpu"]
-wgpu = ["dep:burn-wgpu"]
-cuda = ["dep:burn-tch"]
+default = ["cpu"]
+cpu = ["burn/flex"]
+wgpu = ["burn/wgpu"]
+cuda = ["burn/cuda"]
+metal = ["burn/metal"]
+rocm = ["burn/rocm"]
+vulkan = ["burn/vulkan"]
+webgpu = ["burn/webgpu"]
+cubecl-cpu = ["burn/cpu"]
 
 [dependencies]
-# Burn 框架核心
-burn = { version = "0.19.1", features = ["train", "vision"] }
-burn-train = { version = "0.19.1" }
-# Backends
-burn-wgpu = { version = "0.19.1", optional = true }
-burn-tch = { version = "0.19.1", optional = true }
-burn-autodiff = { version = "0.19.1" }
+burn = { version = "0.22.1", features = ["dataset"] }
 
 # 数据处理
-tokenizers = "0.22.2"
+tokenizers = "0.23.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+sha2 = "0.10"
 
 # 实用工具
-rand = "0.8"
-rayon = "1.10"
+rand = "0.10"
+tempfile = "3"
 anyhow = "1.0"
-clap = { version = "4.5", features = ["derive"] }
-indicatif = "0.17"
-log = "0.4"
-env_logger = "0.11"
-derive_builder = "0.20"
+clap = { version = "4.6", features = ["derive"] }
 
 [profile.release]
 opt-level = 3

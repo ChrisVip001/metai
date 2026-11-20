@@ -1,0 +1,21 @@
+{
+  "accumulation_steps": 1,
+  "completed_epochs": 2,
+  "global_batch": 1,
+  "micro_batch": 1,
+  "parameters": 125276928,
+  "primary_allocator_before_save": {
+    "bytes_in_use": 1503613312,
+    "bytes_padding": 34944,
+    "bytes_reserved": 1620530176,
+    "live_allocations": 723
+  },
+  "runtime": "Metal",
+  "train_targets_per_epoch": 6,
+  "training_blocks": 1,
+  "validation": {
+    "nll": 10.5781982421875,
+    "tokens": 5
+  },
+  "world_size": 1
+}

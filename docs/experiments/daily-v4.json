@@ -1,0 +1,6931 @@
+{
+  "experiment": "daily-v4",
+  "freeze": {
+    "subset_uncompressed_sha256": "df7f01e863da2cd016a4bcb84b1509358a141eac310353b2448be9f797e0a218",
+    "archive_sha256": "d606361aa7312dcdfb15ef4fc51cb1e7ed8bc2dc608a7b192626cd36e8403106",
+    "files": {
+      "small.jsonl": "752039aa9aefbf606811ee410493b2098431884e93504efec1078083608ec48d",
+      "wide.jsonl": "19a34f76a3f92d28919d3b5f968dcd57fddc29bc995dcfc85356373ab4620fee",
+      "focused.jsonl": "d88a1f03146579d18292f491634793c27839c50ea44509daffe3866c75ec9454",
+      "heldout-references.jsonl": "f0f7ac5e6123ff48a8335bf60f5d3225df6ab11ed99fcd6ad9866a5aaeb6dd4d",
+      "heldout-questions.jsonl": "895fb896b72a56861fc1b956546c75e3d0c94b46e74b1c12c33133015fa812d8"
+    },
+    "unique_train_pairs": {
+      "small": 384,
+      "wide": 3072,
+      "focused": 3072
+    },
+    "common_wide_focused": 2254,
+    "heldout_pairs": {
+      "cannot": 6,
+      "negative": 6,
+      "quantity": 6,
+      "time": 6,
+      "other": 6
+    },
+    "batch": 16,
+    "epochs": 4,
+    "steps": 1536,
+    "seed": 42,
+    "lr": 0.00015
+  },
+  "protocol": {
+    "primary_pairs": 30,
+    "diagnostic_ids": [
+      "1636184",
+      "530682"
+    ],
+    "reserve_ids": [
+      "261486",
+      "58208"
+    ],
+    "reason": "Before inspecting any output, separate the ticket paraphrase and apple singular/plural overlap found in earlier training. Score all 32 pairs; report the other 30 as primary.",
+    "prior_overlap": {
+      "530682": "1409674",
+      "1636184": "276279"
+    },
+    "sha256": {
+      "reserve.jsonl": "6b80e36a2f4ffe041858a6f26028d5b799559fe09533bb0a1b4e98ead5b61ae4",
+      "rubric.jsonl": "b98c423da88852022375e8915efc77f2320b1248d9e8a5a883746b5e936aa686",
+      "daily-v4-freeze.json": "76a74472b48b58de54bf3f6fb0055de666548e384d98b7b997396e29db36153d",
+      "reserve-questions.jsonl": "262ac628bbad92aee2db8bbfec0d0b72cd02e1d822eb49e709ab6a2c58c8d83b",
+      "reserve-references.jsonl": "dbf06565ee4890b8bc6fc84011440f7afdccf33297e579399faef590d15c6baa"
+    }
+  },
+  "training": {
+    "small": {
+      "epoch_mean_batch_loss": [
+        1.009749,
+        0.013506,
+        0.003842,
+        0.001982
+      ],
+      "inputs": {
+        "command": [
+          "artifacts/m2-bilingual-v2/metai-metal",
+          "--device",
+          "metal",
+          "train-sft",
+          "--model-dir",
+          "artifacts/translation-v3/mixed",
+          "--data-path",
+          "artifacts/daily-v4/data/small.jsonl",
+          "--output-dir",
+          "artifacts/daily-v4/small",
+          "--batch-size",
+          "16",
+          "--num-epochs",
+          "4",
+          "--learning-rate",
+          "0.00015",
+          "--seed",
+          "42"
+        ],
+        "binary_sha256": "8b4b19eaa2402f3c23f2212a81d052e3b59cd310c7316206300d76b5bc0385ee",
+        "base_sha256": "a71dc8062730476ba78ea04e390590b075c109a1765588cf33e6edfd65bef63b",
+        "tokenizer_sha256": "abc426360267b75e08dafc56227733cbc2ccf9b65b8abf5f2e1fa89998fbfd0c",
+        "data_sha256": "752039aa9aefbf606811ee410493b2098431884e93504efec1078083608ec48d"
+      },
+      "elapsed_seconds": 645.54,
+      "model_sha256": "977625c918e745184b7a57e91d1a0012fe436d9cd1ce4f2ea88f1de4482c183c",
+      "examples": 6144,
+      "optimizer_steps": 1536,
+      "parameters": 125276928,
+      "runtime": "Metal",
+      "schedule": {
+        "batch_size": 16,
+        "learning_rate": 0.00015,
+        "num_epochs": 4,
+        "seed": 42
+      },
+      "supervised_targets_per_epoch": 74352,
+      "topic_hits": {
+        "家庭": 15,
+        "学校": 6,
+        "工作": 8,
+        "交通与出行": 9,
+        "饮食": 7,
+        "购物与钱": 11,
+        "健康": 5,
+        "休闲": 14
+      },
+      "form_hits": {
+        "cannot": 4,
+        "negative": 49,
+        "quantity": 19,
+        "time": 38,
+        "other": 60
+      }
+    },
+    "wide": {
+      "epoch_mean_batch_loss": [
+        3.441795,
+        2.216864,
+        1.132248,
+        0.328131
+      ],
+      "inputs": {
+        "command": [
+          "artifacts/m2-bilingual-v2/metai-metal",
+          "--device",
+          "metal",
+          "train-sft",
+          "--model-dir",
+          "artifacts/translation-v3/mixed",
+          "--data-path",
+          "artifacts/daily-v4/data/wide.jsonl",
+          "--output-dir",
+          "artifacts/daily-v4/wide",
+          "--batch-size",
+          "16",
+          "--num-epochs",
+          "4",
+          "--learning-rate",
+          "0.00015",
+          "--seed",
+          "42"
+        ],
+        "binary_sha256": "8b4b19eaa2402f3c23f2212a81d052e3b59cd310c7316206300d76b5bc0385ee",
+        "base_sha256": "a71dc8062730476ba78ea04e390590b075c109a1765588cf33e6edfd65bef63b",
+        "tokenizer_sha256": "abc426360267b75e08dafc56227733cbc2ccf9b65b8abf5f2e1fa89998fbfd0c",
+        "data_sha256": "19a34f76a3f92d28919d3b5f968dcd57fddc29bc995dcfc85356373ab4620fee"
+      },
+      "elapsed_seconds": 631.51,
+      "model_sha256": "3893c62c827704667778754292f988a070950d194a351912a6f0ffcbdbd40cc6",
+      "examples": 6144,
+      "optimizer_steps": 1536,
+      "parameters": 125276928,
+      "runtime": "Metal",
+      "schedule": {
+        "batch_size": 16,
+        "learning_rate": 0.00015,
+        "num_epochs": 4,
+        "seed": 42
+      },
+      "supervised_targets_per_epoch": 73638,
+      "topic_hits": {
+        "家庭": 103,
+        "学校": 86,
+        "工作": 71,
+        "交通与出行": 97,
+        "饮食": 82,
+        "购物与钱": 94,
+        "健康": 49,
+        "休闲": 79
+      },
+      "form_hits": {
+        "cannot": 64,
+        "negative": 510,
+        "quantity": 126,
+        "time": 385,
+        "other": 558
+      }
+    },
+    "focused": {
+      "epoch_mean_batch_loss": [
+        3.333557,
+        2.125682,
+        1.08278,
+        0.321111
+      ],
+      "inputs": {
+        "command": [
+          "artifacts/m2-bilingual-v2/metai-metal",
+          "--device",
+          "metal",
+          "train-sft",
+          "--model-dir",
+          "artifacts/translation-v3/mixed",
+          "--data-path",
+          "artifacts/daily-v4/data/focused.jsonl",
+          "--output-dir",
+          "artifacts/daily-v4/focused",
+          "--batch-size",
+          "16",
+          "--num-epochs",
+          "4",
+          "--learning-rate",
+          "0.00015",
+          "--seed",
+          "42"
+        ],
+        "binary_sha256": "8b4b19eaa2402f3c23f2212a81d052e3b59cd310c7316206300d76b5bc0385ee",
+        "base_sha256": "a71dc8062730476ba78ea04e390590b075c109a1765588cf33e6edfd65bef63b",
+        "tokenizer_sha256": "abc426360267b75e08dafc56227733cbc2ccf9b65b8abf5f2e1fa89998fbfd0c",
+        "data_sha256": "d88a1f03146579d18292f491634793c27839c50ea44509daffe3866c75ec9454"
+      },
+      "elapsed_seconds": 636.87,
+      "model_sha256": "56bfef1264256fefea2f978d197d59783ea4e2fc6fa97542266bdfe7d5fb739c",
+      "examples": 6144,
+      "optimizer_steps": 1536,
+      "parameters": 125276928,
+      "runtime": "Metal",
+      "schedule": {
+        "batch_size": 16,
+        "learning_rate": 0.00015,
+        "num_epochs": 4,
+        "seed": 42
+      },
+      "supervised_targets_per_epoch": 74373,
+      "topic_hits": {
+        "家庭": 97,
+        "学校": 79,
+        "工作": 83,
+        "交通与出行": 91,
+        "饮食": 86,
+        "购物与钱": 96,
+        "健康": 49,
+        "休闲": 83
+      },
+      "form_hits": {
+        "cannot": 160,
+        "negative": 728,
+        "quantity": 325,
+        "time": 709,
+        "other": 763
+      }
+    }
+  },
+  "inference": {
+    "before-heldout": {
+      "command": [
+        "artifacts/m2-bilingual-v2/metai-metal",
+        "--device",
+        "metal",
+        "eval-chat",
+        "--model-dir",
+        "artifacts/translation-v3/mixed",
+        "--questions",
+        "artifacts/daily-v4/data/heldout-questions.jsonl",
+        "--max-len",
+        "32"
+      ],
+      "binary_sha256": "8b4b19eaa2402f3c23f2212a81d052e3b59cd310c7316206300d76b5bc0385ee",
+      "model_sha256": "a71dc8062730476ba78ea04e390590b075c109a1765588cf33e6edfd65bef63b",
+      "input_sha256": "895fb896b72a56861fc1b956546c75e3d0c94b46e74b1c12c33133015fa812d8",
+      "answers_sha256": "bbffca206fface02f70eccd2a2efd88aa41e0aebad4b8c6415fbda105de31949"
+    },
+    "small-heldout": {
+      "command": [
+        "artifacts/m2-bilingual-v2/metai-metal",
+        "--device",
+        "metal",
+        "eval-chat",
+        "--model-dir",
+        "artifacts/daily-v4/small",
+        "--questions",
+        "artifacts/daily-v4/data/heldout-questions.jsonl",
+        "--max-len",
+        "32"
+      ],
+      "binary_sha256": "8b4b19eaa2402f3c23f2212a81d052e3b59cd310c7316206300d76b5bc0385ee",
+      "model_sha256": "977625c918e745184b7a57e91d1a0012fe436d9cd1ce4f2ea88f1de4482c183c",
+      "input_sha256": "895fb896b72a56861fc1b956546c75e3d0c94b46e74b1c12c33133015fa812d8",
+      "answers_sha256": "0242b919c31d85f4d995c1b86f344ab33f53f3de2203ab504f2fc47e828d3a6d"
+    },
+    "wide-heldout": {
+      "command": [
+        "artifacts/m2-bilingual-v2/metai-metal",
+        "--device",
+        "metal",
+        "eval-chat",
+        "--model-dir",
+        "artifacts/daily-v4/wide",
+        "--questions",
+        "artifacts/daily-v4/data/heldout-questions.jsonl",
+        "--max-len",
+        "32"
+      ],
+      "binary_sha256": "8b4b19eaa2402f3c23f2212a81d052e3b59cd310c7316206300d76b5bc0385ee",
+      "model_sha256": "3893c62c827704667778754292f988a070950d194a351912a6f0ffcbdbd40cc6",
+      "input_sha256": "895fb896b72a56861fc1b956546c75e3d0c94b46e74b1c12c33133015fa812d8",
+      "answers_sha256": "3510c723d11244b8d268a454148cd4c29ef89b56f10d9a82ee03258a28ccb481"
+    },
+    "focused-heldout": {
+      "command": [
+        "artifacts/m2-bilingual-v2/metai-metal",
+        "--device",
+        "metal",
+        "eval-chat",
+        "--model-dir",
+        "artifacts/daily-v4/focused",
+        "--questions",
+        "artifacts/daily-v4/data/heldout-questions.jsonl",
+        "--max-len",
+        "32"
+      ],
+      "binary_sha256": "8b4b19eaa2402f3c23f2212a81d052e3b59cd310c7316206300d76b5bc0385ee",
+      "model_sha256": "56bfef1264256fefea2f978d197d59783ea4e2fc6fa97542266bdfe7d5fb739c",
+      "input_sha256": "895fb896b72a56861fc1b956546c75e3d0c94b46e74b1c12c33133015fa812d8",
+      "answers_sha256": "17f48c440a178a348b7f05b46510320b363c32632ca31d3a51f0bc422cddaf36"
+    },
+    "before-reserve": {
+      "command": [
+        "artifacts/m2-bilingual-v2/metai-metal",
+        "--device",
+        "metal",
+        "eval-chat",
+        "--model-dir",
+        "artifacts/translation-v3/mixed",
+        "--questions",
+        "artifacts/daily-v4/data/reserve-questions.jsonl",
+        "--max-len",
+        "32"
+      ],
+      "binary_sha256": "8b4b19eaa2402f3c23f2212a81d052e3b59cd310c7316206300d76b5bc0385ee",
+      "model_sha256": "a71dc8062730476ba78ea04e390590b075c109a1765588cf33e6edfd65bef63b",
+      "input_sha256": "262ac628bbad92aee2db8bbfec0d0b72cd02e1d822eb49e709ab6a2c58c8d83b",
+      "answers_sha256": "7f10786acb6b23d524c0e9f998aa7d12ddb97fd89025d1832c7ced608a78b29e"
+    },
+    "small-reserve": {
+      "command": [
+        "artifacts/m2-bilingual-v2/metai-metal",
+        "--device",
+        "metal",
+        "eval-chat",
+        "--model-dir",
+        "artifacts/daily-v4/small",
+        "--questions",
+        "artifacts/daily-v4/data/reserve-questions.jsonl",
+        "--max-len",
+        "32"
+      ],
+      "binary_sha256": "8b4b19eaa2402f3c23f2212a81d052e3b59cd310c7316206300d76b5bc0385ee",
+      "model_sha256": "977625c918e745184b7a57e91d1a0012fe436d9cd1ce4f2ea88f1de4482c183c",
+      "input_sha256": "262ac628bbad92aee2db8bbfec0d0b72cd02e1d822eb49e709ab6a2c58c8d83b",
+      "answers_sha256": "557a1c2a5dbf9b951568da5cb3587dac17b2944910b1bdcc3549587f21b342df"
+    },
+    "wide-reserve": {
+      "command": [
+        "artifacts/m2-bilingual-v2/metai-metal",
+        "--device",
+        "metal",
+        "eval-chat",
+        "--model-dir",
+        "artifacts/daily-v4/wide",
+        "--questions",
+        "artifacts/daily-v4/data/reserve-questions.jsonl",
+        "--max-len",
+        "32"
+      ],
+      "binary_sha256": "8b4b19eaa2402f3c23f2212a81d052e3b59cd310c7316206300d76b5bc0385ee",
+      "model_sha256": "3893c62c827704667778754292f988a070950d194a351912a6f0ffcbdbd40cc6",
+      "input_sha256": "262ac628bbad92aee2db8bbfec0d0b72cd02e1d822eb49e709ab6a2c58c8d83b",
+      "answers_sha256": "1358eee8f5c277f1a1984fea06fcd621c9c7ba020d9b93fcdd0e68bca70b507b"
+    },
+    "focused-reserve": {
+      "command": [
+        "artifacts/m2-bilingual-v2/metai-metal",
+        "--device",
+        "metal",
+        "eval-chat",
+        "--model-dir",
+        "artifacts/daily-v4/focused",
+        "--questions",
+        "artifacts/daily-v4/data/reserve-questions.jsonl",
+        "--max-len",
+        "32"
+      ],
+      "binary_sha256": "8b4b19eaa2402f3c23f2212a81d052e3b59cd310c7316206300d76b5bc0385ee",
+      "model_sha256": "56bfef1264256fefea2f978d197d59783ea4e2fc6fa97542266bdfe7d5fb739c",
+      "input_sha256": "262ac628bbad92aee2db8bbfec0d0b72cd02e1d822eb49e709ab6a2c58c8d83b",
+      "answers_sha256": "3258dab1b670f9610024bf0fbb3764eec953799cda08bb0f9fbdc865c5c03808"
+    }
+  },
+  "review_sha256": "ce942bfe4e81f657255a696ad41b3686dd70b2f61d3122431e78da436db93a95",
+  "scores": {
+    "before": {
+      "primary": {
+        "n": 60,
+        "meaning": 0,
+        "detail": 0,
+        "exact": 0
+      },
+      "both_directions": 0,
+      "directions": {
+        "en-zh": {
+          "n": 30,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        },
+        "zh-en": {
+          "n": 30,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        }
+      },
+      "groups": {
+        "cannot": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        },
+        "negative": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        },
+        "quantity": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        },
+        "time": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        },
+        "other": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        }
+      },
+      "diagnostics": {
+        "n": 4,
+        "meaning": 0,
+        "detail": 0,
+        "exact": 0
+      },
+      "paired_changes": {
+        "before": {
+          "meaning": {
+            "gained": 0,
+            "lost": 0
+          },
+          "detail": {
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "wide": {
+          "meaning": {
+            "gained": 0,
+            "lost": 2
+          },
+          "detail": {
+            "gained": 0,
+            "lost": 2
+          }
+        }
+      }
+    },
+    "small": {
+      "primary": {
+        "n": 60,
+        "meaning": 0,
+        "detail": 0,
+        "exact": 0
+      },
+      "both_directions": 0,
+      "directions": {
+        "en-zh": {
+          "n": 30,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        },
+        "zh-en": {
+          "n": 30,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        }
+      },
+      "groups": {
+        "cannot": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        },
+        "negative": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        },
+        "quantity": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        },
+        "time": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        },
+        "other": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        }
+      },
+      "diagnostics": {
+        "n": 4,
+        "meaning": 0,
+        "detail": 0,
+        "exact": 0
+      },
+      "paired_changes": {
+        "before": {
+          "meaning": {
+            "gained": 0,
+            "lost": 0
+          },
+          "detail": {
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "wide": {
+          "meaning": {
+            "gained": 0,
+            "lost": 2
+          },
+          "detail": {
+            "gained": 0,
+            "lost": 2
+          }
+        }
+      }
+    },
+    "wide": {
+      "primary": {
+        "n": 60,
+        "meaning": 2,
+        "detail": 2,
+        "exact": 1
+      },
+      "both_directions": 1,
+      "directions": {
+        "en-zh": {
+          "n": 30,
+          "meaning": 1,
+          "detail": 1,
+          "exact": 0
+        },
+        "zh-en": {
+          "n": 30,
+          "meaning": 1,
+          "detail": 1,
+          "exact": 1
+        }
+      },
+      "groups": {
+        "cannot": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        },
+        "negative": {
+          "n": 12,
+          "meaning": 2,
+          "detail": 2,
+          "exact": 1
+        },
+        "quantity": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        },
+        "time": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        },
+        "other": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 0,
+          "exact": 0
+        }
+      },
+      "diagnostics": {
+        "n": 4,
+        "meaning": 0,
+        "detail": 0,
+        "exact": 0
+      },
+      "paired_changes": {
+        "before": {
+          "meaning": {
+            "gained": 2,
+            "lost": 0
+          },
+          "detail": {
+            "gained": 2,
+            "lost": 0
+          }
+        },
+        "wide": {
+          "meaning": {
+            "gained": 0,
+            "lost": 0
+          },
+          "detail": {
+            "gained": 0,
+            "lost": 0
+          }
+        }
+      }
+    },
+    "focused": {
+      "primary": {
+        "n": 60,
+        "meaning": 5,
+        "detail": 9,
+        "exact": 2
+      },
+      "both_directions": 1,
+      "directions": {
+        "en-zh": {
+          "n": 30,
+          "meaning": 3,
+          "detail": 5,
+          "exact": 1
+        },
+        "zh-en": {
+          "n": 30,
+          "meaning": 2,
+          "detail": 4,
+          "exact": 1
+        }
+      },
+      "groups": {
+        "cannot": {
+          "n": 12,
+          "meaning": 1,
+          "detail": 1,
+          "exact": 0
+        },
+        "negative": {
+          "n": 12,
+          "meaning": 2,
+          "detail": 2,
+          "exact": 2
+        },
+        "quantity": {
+          "n": 12,
+          "meaning": 0,
+          "detail": 1,
+          "exact": 0
+        },
+        "time": {
+          "n": 12,
+          "meaning": 1,
+          "detail": 4,
+          "exact": 0
+        },
+        "other": {
+          "n": 12,
+          "meaning": 1,
+          "detail": 1,
+          "exact": 0
+        }
+      },
+      "diagnostics": {
+        "n": 4,
+        "meaning": 0,
+        "detail": 0,
+        "exact": 0
+      },
+      "paired_changes": {
+        "before": {
+          "meaning": {
+            "gained": 5,
+            "lost": 0
+          },
+          "detail": {
+            "gained": 9,
+            "lost": 0
+          }
+        },
+        "wide": {
+          "meaning": {
+            "gained": 3,
+            "lost": 0
+          },
+          "detail": {
+            "gained": 7,
+            "lost": 0
+          }
+        }
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "1954967-en-zh",
+      "group": "cannot",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #1954967 (CK) & #5900366 (verdastelo9604)",
+      "instruction": "把这句话译成中文。",
+      "input": "We can't talk here.",
+      "output": "我们不能在这里谈。",
+      "pair": "1954967",
+      "primary": true,
+      "criterion": "表达在这里无法或不获准交谈，不只是选择不谈。",
+      "predictions": {
+        "before": {
+          "answer": "我们提供。",
+          "token_ids": [
+            678,
+            986,
+            2199,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成了提供东西。"
+        },
+        "small": {
+          "answer": "我們有說話。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            239,
+            2642,
+            93,
+            130,
+            92,
+            99,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成已经说过话，地点与限制都消失。"
+        },
+        "wide": {
+          "answer": "我們不論這裡。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            190,
+            130,
+            94,
+            159,
+            295,
+            162,
+            838,
+            84,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "有地点和否定，“不论这里”没有表达此处不能交谈。"
+        },
+        "focused": {
+          "answer": "我们不能跟你说！",
+          "token_ids": [
+            678,
+            1033,
+            1050,
+            3129,
+            251,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "保留不能说，把地点限制改成了不能跟你说。"
+        }
+      }
+    },
+    {
+      "id": "1954967-zh-en",
+      "group": "cannot",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #1954967 (CK) & #5900366 (verdastelo9604)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我们不能在这里谈。",
+      "output": "We can't talk here.",
+      "pair": "1954967",
+      "primary": true,
+      "criterion": "表达在这里无法或不获准交谈，不只是选择不谈。",
+      "predictions": {
+        "before": {
+          "answer": "We don't want anything.",
+          "token_ids": [
+            46,
+            59,
+            407,
+            392,
+            2683,
+            6966,
+            3408,
+            1338,
+            514,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成不想要东西。"
+        },
+        "small": {
+          "answer": "We want to see it.",
+          "token_ids": [
+            46,
+            59,
+            6966,
+            448,
+            2207,
+            839,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成想看看它。"
+        },
+        "wide": {
+          "answer": "We can't stay here till he comes.",
+          "token_ids": [
+            46,
+            59,
+            1793,
+            2683,
+            4250,
+            1852,
+            4995,
+            487,
+            4254,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "不能交谈变成不能在此等他来。"
+        },
+        "focused": {
+          "answer": "We can't talk about it.",
+          "token_ids": [
+            46,
+            59,
+            1793,
+            2683,
+            6406,
+            6134,
+            839,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把不能在这里谈改成不能谈此事，限制的范围不同。"
+        }
+      }
+    },
+    {
+      "id": "550246-en-zh",
+      "group": "cannot",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #550246 (CK) & #910229 (Martha)",
+      "instruction": "把这句话译成中文。",
+      "input": "I can't remember.",
+      "output": "我想不起來。",
+      "pair": "550246",
+      "primary": true,
+      "criterion": "表达想不起来或记不住，不只是陈述没有想。",
+      "predictions": {
+        "before": {
+          "answer": "我走不了。",
+          "token_ids": [
+            218,
+            449,
+            4087,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把想不起来译成走不了。"
+        },
+        "small": {
+          "answer": "我可以獨自做。",
+          "token_ids": [
+            218,
+            2151,
+            4108,
+            91,
+            341,
+            546,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成可以独自做某事，动作和肯否均错。"
+        },
+        "wide": {
+          "answer": "我無法去。",
+          "token_ids": [
+            218,
+            453,
+            84,
+            808,
+            238,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "无法做的事情被换成前往某处。"
+        },
+        "focused": {
+          "answer": "我不記得記得記得。",
+          "token_ids": [
+            2729,
+            130,
+            91,
+            161,
+            256,
+            130,
+            91,
+            161,
+            256,
+            130,
+            91,
+            161,
+            256,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": true,
+          "detail": true,
+          "reason": "“我不记得”传达无法回想，没有新增事实，但“记得”异常重复，流畅度差。"
+        }
+      }
+    },
+    {
+      "id": "550246-zh-en",
+      "group": "cannot",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #550246 (CK) & #910229 (Martha)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我想不起來。",
+      "output": "I can't remember.",
+      "pair": "550246",
+      "primary": true,
+      "criterion": "表达想不起来或记不住，不只是陈述没有想。",
+      "predictions": {
+        "before": {
+          "answer": "I want to be a doctor.",
+          "token_ids": [
+            32,
+            6966,
+            448,
+            555,
+            259,
+            1137,
+            1451,
+            344,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成想当医生。"
+        },
+        "small": {
+          "answer": "I want to stay.",
+          "token_ids": [
+            32,
+            6966,
+            448,
+            4250,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成希望留下。"
+        },
+        "wide": {
+          "answer": "I would like to come.",
+          "token_ids": [
+            32,
+            1775,
+            2214,
+            448,
+            2046,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把想不起来译成愿意来。"
+        },
+        "focused": {
+          "answer": "I can't remember to come.",
+          "token_ids": [
+            32,
+            1793,
+            2683,
+            9266,
+            448,
+            2046,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "remember to come 指记得要来，给回忆改加了一个未来任务。"
+        }
+      }
+    },
+    {
+      "id": "1249224-en-zh",
+      "group": "cannot",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #1249224 (CM) & #1584522 (Gustav249)",
+      "instruction": "把这句话译成中文。",
+      "input": "I can't accept this gift.",
+      "output": "我不能收这份礼。",
+      "pair": "1249224",
+      "primary": true,
+      "criterion": "表达无法或不宜收下礼物，不是单纯不想要。",
+      "predictions": {
+        "before": {
+          "answer": "我不能預言會發生甚麼。",
+          "token_ids": [
+            218,
+            1033,
+            131,
+            169,
+            153,
+            485,
+            201,
+            140,
+            428,
+            110,
+            479,
+            632,
+            1062,
+            110,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把收礼换成预测未来。"
+        },
+        "small": {
+          "answer": "我可以獨自做這個。",
+          "token_ids": [
+            218,
+            2151,
+            4108,
+            91,
+            341,
+            546,
+            295,
+            162,
+            396,
+            148,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成可以独自做，礼物和拒收都消失。"
+        },
+        "wide": {
+          "answer": "我不接受這個女孩。",
+          "token_ids": [
+            2729,
+            802,
+            935,
+            295,
+            162,
+            396,
+            148,
+            704,
+            1646,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把礼物换成女孩，不能收和不接受也不同。"
+        },
+        "focused": {
+          "answer": "我不能破例。",
+          "token_ids": [
+            218,
+            1033,
+            1086,
+            3892,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "不能收礼变成不能破例。"
+        }
+      }
+    },
+    {
+      "id": "1249224-zh-en",
+      "group": "cannot",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #1249224 (CM) & #1584522 (Gustav249)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我不能收这份礼。",
+      "output": "I can't accept this gift.",
+      "pair": "1249224",
+      "primary": true,
+      "criterion": "表达无法或不宜收下礼物，不是单纯不想要。",
+      "predictions": {
+        "before": {
+          "answer": "I can't afford to play tennis.",
+          "token_ids": [
+            32,
+            1793,
+            2683,
+            3321,
+            4231,
+            448,
+            6653,
+            10277,
+            68,
+            332,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成负担不起打网球。"
+        },
+        "small": {
+          "answer": "I can't at home.",
+          "token_ids": [
+            32,
+            1793,
+            2683,
+            1570,
+            5155,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "英文没有完整动作，也没有礼物。"
+        },
+        "wide": {
+          "answer": "I can't stand this noise any longer.",
+          "token_ids": [
+            32,
+            1793,
+            2683,
+            3483,
+            961,
+            15811,
+            3408,
+            4119,
+            375,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成再也忍受不了噪声。"
+        },
+        "focused": {
+          "answer": "I can't conceal with this.",
+          "token_ids": [
+            32,
+            1793,
+            2683,
+            1594,
+            615,
+            973,
+            819,
+            961,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "conceal 是隐藏，未译出接受礼物。"
+        }
+      }
+    },
+    {
+      "id": "4666781-en-zh",
+      "group": "cannot",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #4666781 (CK) & #6105231 (verdastelo9604)",
+      "instruction": "把这句话译成中文。",
+      "input": "Tom can't ride a horse.",
+      "output": "湯姆不能騎馬。",
+      "pair": "4666781",
+      "primary": true,
+      "criterion": "表达无法或不会骑马；单说不骑不充分。",
+      "predictions": {
+        "before": {
+          "answer": "汤姆不可能是真的。",
+          "token_ids": [
+            1937,
+            313,
+            143,
+            1098,
+            638,
+            211,
+            7601,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "“不可能是真的”改变了模态的对象，遗漏骑马。"
+        },
+        "small": {
+          "answer": "汤姆不能打一點兒。",
+          "token_ids": [
+            1937,
+            313,
+            143,
+            1033,
+            11619,
+            482,
+            167,
+            184,
+            155,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "未译出骑马，不能打一点儿的对象也不清楚。"
+        },
+        "wide": {
+          "answer": "汤姆不会系领带。",
+          "token_ids": [
+            1937,
+            313,
+            143,
+            4888,
+            2090,
+            607,
+            706,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "“不会”正确，骑马却变成了系领带。"
+        },
+        "focused": {
+          "answer": "湯姆不能自已。",
+          "token_ids": [
+            1134,
+            97,
+            313,
+            143,
+            1033,
+            341,
+            501,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "“不能自已”说的是控制不住自己。"
+        }
+      }
+    },
+    {
+      "id": "4666781-zh-en",
+      "group": "cannot",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #4666781 (CK) & #6105231 (verdastelo9604)",
+      "instruction": "Translate this sentence into English.",
+      "input": "湯姆不能騎馬。",
+      "output": "Tom can't ride a horse.",
+      "pair": "4666781",
+      "primary": true,
+      "criterion": "表达无法或不会骑马；单说不骑不充分。",
+      "predictions": {
+        "before": {
+          "answer": "Tom can't be older.",
+          "token_ids": [
+            43,
+            522,
+            1793,
+            2683,
+            555,
+            4047,
+            375,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成不可能年纪更大。"
+        },
+        "small": {
+          "answer": "Tom can't let anything.",
+          "token_ids": [
+            43,
+            522,
+            1793,
+            2683,
+            1957,
+            3408,
+            1338,
+            514,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "不能让某事发生，未译出骑马。"
+        },
+        "wide": {
+          "answer": "Tom can't stay here.",
+          "token_ids": [
+            43,
+            522,
+            1793,
+            2683,
+            4250,
+            1852,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "骑马换成待在这里。"
+        },
+        "focused": {
+          "answer": "Tom can't conceal number.",
+          "token_ids": [
+            43,
+            522,
+            1793,
+            2683,
+            1594,
+            615,
+            973,
+            419,
+            9690,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "骑马换成隐藏数字。"
+        }
+      }
+    },
+    {
+      "id": "2698827-en-zh",
+      "group": "cannot",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #2698827 (WestofEden) & #6333816 (verdastelo9604)",
+      "instruction": "把这句话译成中文。",
+      "input": "Sorry, but I can't hear you very well.",
+      "output": "不好意思，我聽不清你說的話。",
+      "pair": "2698827",
+      "primary": true,
+      "criterion": "表达对对方说的话听不清楚。道歉影响整句分。",
+      "predictions": {
+        "before": {
+          "answer": "抱歉，我没钱。",
+          "token_ids": [
+            2092,
+            214,
+            146,
+            173,
+            10084,
+            950,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把听不清换成没钱。"
+        },
+        "small": {
+          "answer": "抱歉我能知道得很抱歉。",
+          "token_ids": [
+            2092,
+            214,
+            146,
+            218,
+            638,
+            1207,
+            256,
+            2786,
+            2092,
+            214,
+            146,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "有道歉，但听不清对方说话的含义消失。"
+        },
+        "wide": {
+          "answer": "對不起，但我無法讓你真的是正確。",
+          "token_ids": [
+            195,
+            150,
+            5361,
+            173,
+            867,
+            218,
+            453,
+            84,
+            808,
+            300,
+            156,
+            242,
+            654,
+            1671,
+            404,
+            900,
+            108,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "保留道歉，后半没有表达听力受限。"
+        },
+        "focused": {
+          "answer": "对不起，但我情不自禁。",
+          "token_ids": [
+            830,
+            5361,
+            173,
+            867,
+            218,
+            882,
+            11291,
+            1700,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把听不清换成情不自禁。"
+        }
+      }
+    },
+    {
+      "id": "2698827-zh-en",
+      "group": "cannot",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #2698827 (WestofEden) & #6333816 (verdastelo9604)",
+      "instruction": "Translate this sentence into English.",
+      "input": "不好意思，我聽不清你說的話。",
+      "output": "Sorry, but I can't hear you very well.",
+      "pair": "2698827",
+      "primary": true,
+      "criterion": "表达对对方说的话听不清楚。道歉影响整句分。",
+      "predictions": {
+        "before": {
+          "answer": "I can't decide if I'm happy or sad.",
+          "token_ids": [
+            32,
+            1793,
+            2683,
+            997,
+            57,
+            3451,
+            1751,
+            369,
+            8,
+            67,
+            7633,
+            1876,
+            8378,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成不能判断自己的情绪。"
+        },
+        "small": {
+          "answer": "I wish I got the six hours.",
+          "token_ids": [
+            32,
+            6967,
+            369,
+            12439,
+            312,
+            274,
+            5315,
+            9706,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成希望得到六小时。"
+        },
+        "wide": {
+          "answer": "I'm sorry to you don't know.",
+          "token_ids": [
+            32,
+            8,
+            67,
+            274,
+            344,
+            1642,
+            448,
+            451,
+            407,
+            392,
+            2683,
+            1791,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "提到道歉，却没有表达听不清对方。"
+        },
+        "focused": {
+          "answer": "I'm sorry I'm sorry.",
+          "token_ids": [
+            32,
+            8,
+            67,
+            274,
+            344,
+            1642,
+            369,
+            8,
+            67,
+            274,
+            344,
+            1642,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只重复道歉，没有翻译听不清的原因。"
+        }
+      }
+    },
+    {
+      "id": "2241048-en-zh",
+      "group": "cannot",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #2241048 (CK) & #6058637 (verdastelo9604)",
+      "instruction": "把这句话译成中文。",
+      "input": "We can't escape.",
+      "output": "我們逃不出去。",
+      "pair": "2241048",
+      "primary": true,
+      "criterion": "表达无力逃脱或逃不出去，不是选择不逃。",
+      "predictions": {
+        "before": {
+          "answer": "我们提供水。",
+          "token_ids": [
+            678,
+            986,
+            2199,
+            556,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成提供水。"
+        },
+        "small": {
+          "answer": "我們不能強迫害。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            1033,
+            237,
+            105,
+            11811,
+            1152,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "含否定形式，但“强迫害”没有表达逃脱。"
+        },
+        "wide": {
+          "answer": "我們不能破例。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            1033,
+            1086,
+            3892,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成不能破例。"
+        },
+        "focused": {
+          "answer": "我们不能到欧洲。",
+          "token_ids": [
+            678,
+            1033,
+            320,
+            4417,
+            4565,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "逃不出去变成不能到欧洲。"
+        }
+      }
+    },
+    {
+      "id": "2241048-zh-en",
+      "group": "cannot",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #2241048 (CK) & #6058637 (verdastelo9604)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我們逃不出去。",
+      "output": "We can't escape.",
+      "pair": "2241048",
+      "primary": true,
+      "criterion": "表达无力逃脱或逃不出去，不是选择不逃。",
+      "predictions": {
+        "before": {
+          "answer": "We don't have too much time.",
+          "token_ids": [
+            46,
+            59,
+            407,
+            392,
+            2683,
+            928,
+            2327,
+            3127,
+            2717,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成时间不多。"
+        },
+        "small": {
+          "answer": "We're having a good us.",
+          "token_ids": [
+            46,
+            59,
+            8,
+            297,
+            12185,
+            259,
+            1509,
+            1902,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "残句未表达受困或逃脱。"
+        },
+        "wide": {
+          "answer": "We ought not to play.",
+          "token_ids": [
+            46,
+            59,
+            136,
+            4551,
+            717,
+            448,
+            6653,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把逃不出去变成不应该玩。"
+        },
+        "focused": {
+          "answer": "We don't go out to play.",
+          "token_ids": [
+            46,
+            59,
+            407,
+            392,
+            2683,
+            1694,
+            2443,
+            448,
+            6653,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成不出去玩，遗漏受困而不能逃脱的意思。"
+        }
+      }
+    },
+    {
+      "id": "6439709-en-zh",
+      "group": "negative",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #6439709 (CK) & #8591219 (easononizuka)",
+      "instruction": "把这句话译成中文。",
+      "input": "Tom didn't get much sleep.",
+      "output": "汤姆没怎么睡。",
+      "pair": "6439709",
+      "primary": true,
+      "criterion": "睡得不多，保留针对睡眠量的限制。",
+      "predictions": {
+        "before": {
+          "answer": "汤姆不点啤酒。",
+          "token_ids": [
+            1937,
+            313,
+            143,
+            190,
+            817,
+            772,
+            87,
+            544,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把没怎么睡改成不点啤酒。"
+        },
+        "small": {
+          "answer": "湯姆沒想冒犯一个。",
+          "token_ids": [
+            1134,
+            97,
+            313,
+            143,
+            343,
+            155,
+            614,
+            3573,
+            1783,
+            475,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "谈的是没想冒犯人，未涉及睡眠。"
+        },
+        "wide": {
+          "answer": "湯姆沒有出現在這個大。",
+          "token_ids": [
+            1134,
+            97,
+            313,
+            143,
+            343,
+            155,
+            239,
+            289,
+            749,
+            112,
+            261,
+            295,
+            162,
+            396,
+            148,
+            243,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "谈的是没出现，未涉及睡眠量。"
+        },
+        "focused": {
+          "answer": "汤姆没有很多关于。",
+          "token_ids": [
+            1937,
+            313,
+            143,
+            1242,
+            2786,
+            515,
+            626,
+            498,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "“没有很多关于”没有给出所指的睡眠。"
+        }
+      }
+    },
+    {
+      "id": "6439709-zh-en",
+      "group": "negative",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #6439709 (CK) & #8591219 (easononizuka)",
+      "instruction": "Translate this sentence into English.",
+      "input": "汤姆没怎么睡。",
+      "output": "Tom didn't get much sleep.",
+      "pair": "6439709",
+      "primary": true,
+      "criterion": "睡得不多，保留针对睡眠量的限制。",
+      "predictions": {
+        "before": {
+          "answer": "Tom can't sleep without a.",
+          "token_ids": [
+            43,
+            522,
+            1793,
+            2683,
+            6459,
+            8532,
+            259,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "未说明睡得少，还把事实改成了有条件的不能入睡。"
+        },
+        "small": {
+          "answer": "Tom have no one to come.",
+          "token_ids": [
+            43,
+            522,
+            928,
+            1149,
+            2114,
+            448,
+            2046,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成没人来，未译出睡眠。"
+        },
+        "wide": {
+          "answer": "Tom isn't sleep.",
+          "token_ids": [
+            43,
+            522,
+            740,
+            68,
+            2683,
+            6459,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "像是在说汤姆没有睡着，未传达睡得少。"
+        },
+        "focused": {
+          "answer": "Tom didn't sleep for an hour.",
+          "token_ids": [
+            43,
+            522,
+            2292,
+            68,
+            2683,
+            6459,
+            757,
+            1269,
+            4728,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "加入原文没有的一小时，且没有清楚表达整体睡得少。"
+        }
+      }
+    },
+    {
+      "id": "321324-en-zh",
+      "group": "negative",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #321324 (CK) & #517562 (fucongcong)",
+      "instruction": "把这句话译成中文。",
+      "input": "It's not my fault.",
+      "output": "不是我的错。",
+      "pair": "321324",
+      "primary": true,
+      "criterion": "否定责任在自己。",
+      "predictions": {
+        "before": {
+          "answer": "不是我的。",
+          "token_ids": [
+            827,
+            1291,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只否定所有权，遗漏错或责任。"
+        },
+        "small": {
+          "answer": "它我的狗。",
+          "token_ids": [
+            185,
+            140,
+            1291,
+            3713,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "译文出现狗，没有责任归属。"
+        },
+        "wide": {
+          "answer": "不是我的。",
+          "token_ids": [
+            827,
+            1291,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只否定所有权，遗漏错或责任。"
+        },
+        "focused": {
+          "answer": "不是我的妻子。",
+          "token_ids": [
+            827,
+            1291,
+            6586,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把责任换成妻子。"
+        }
+      }
+    },
+    {
+      "id": "321324-zh-en",
+      "group": "negative",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #321324 (CK) & #517562 (fucongcong)",
+      "instruction": "Translate this sentence into English.",
+      "input": "不是我的错。",
+      "output": "It's not my fault.",
+      "pair": "321324",
+      "primary": true,
+      "criterion": "否定责任在自己。",
+      "predictions": {
+        "before": {
+          "answer": "It's not mine.",
+          "token_ids": [
+            32,
+            74,
+            721,
+            717,
+            2624,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "表达不是我的东西，未表达不是我的责任。"
+        },
+        "small": {
+          "answer": "It's not mine.",
+          "token_ids": [
+            32,
+            74,
+            721,
+            717,
+            2624,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "表达不是我的东西，未表达不是我的责任。"
+        },
+        "wide": {
+          "answer": "It's not mine.",
+          "token_ids": [
+            32,
+            74,
+            721,
+            717,
+            2624,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "表达不是我的东西，未表达不是我的责任。"
+        },
+        "focused": {
+          "answer": "It's not my bag.",
+          "token_ids": [
+            32,
+            74,
+            721,
+            717,
+            602,
+            319,
+            2934,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成否定包的所有权。"
+        }
+      }
+    },
+    {
+      "id": "1385-en-zh",
+      "group": "negative",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #1385 (CK) & #59 (fucongcong)",
+      "instruction": "把这句话译成中文。",
+      "input": "This is not important.",
+      "output": "這個不重要。",
+      "pair": "1385",
+      "primary": true,
+      "criterion": "否定此事的重要性。",
+      "predictions": {
+        "before": {
+          "answer": "這是不的。",
+          "token_ids": [
+            295,
+            162,
+            211,
+            190,
+            209,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "否定词后没有重要性这一谓语。"
+        },
+        "small": {
+          "answer": "這是很重要。",
+          "token_ids": [
+            295,
+            162,
+            211,
+            2786,
+            945,
+            373,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "译成很重要，肯否相反。"
+        },
+        "wide": {
+          "answer": "這個重要不重要。",
+          "token_ids": [
+            295,
+            162,
+            396,
+            148,
+            945,
+            373,
+            190,
+            945,
+            373,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "“重要不重要”成了正反问，未断言不重要。"
+        },
+        "focused": {
+          "answer": "這是個重要的。",
+          "token_ids": [
+            295,
+            162,
+            211,
+            396,
+            148,
+            945,
+            373,
+            209,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把不重要译成重要。"
+        }
+      }
+    },
+    {
+      "id": "1385-zh-en",
+      "group": "negative",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #1385 (CK) & #59 (fucongcong)",
+      "instruction": "Translate this sentence into English.",
+      "input": "這個不重要。",
+      "output": "This is not important.",
+      "pair": "1385",
+      "primary": true,
+      "criterion": "否定此事的重要性。",
+      "predictions": {
+        "before": {
+          "answer": "This doesn't make sense.",
+          "token_ids": [
+            43,
+            62,
+            332,
+            8437,
+            68,
+            2683,
+            2140,
+            15475,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "改成没有意义或说不通，不等于不重要。"
+        },
+        "small": {
+          "answer": "This is not what he's good.",
+          "token_ids": [
+            43,
+            62,
+            332,
+            740,
+            717,
+            1455,
+            487,
+            721,
+            1509,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "未译出重要性，且凭空加入他的擅长之事。"
+        },
+        "wide": {
+          "answer": "This isn't difficult.",
+          "token_ids": [
+            43,
+            62,
+            332,
+            740,
+            68,
+            2683,
+            407,
+            13585,
+            1629,
+            4824,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把不重要换成不难。"
+        },
+        "focused": {
+          "answer": "This is not wanting.",
+          "token_ids": [
+            43,
+            62,
+            332,
+            740,
+            717,
+            6966,
+            514,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成 wanting，未否定重要性。"
+        }
+      }
+    },
+    {
+      "id": "3267389-en-zh",
+      "group": "negative",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #3267389 (Ricardo14) & #6333811 (verdastelo9604)",
+      "instruction": "把这句话译成中文。",
+      "input": "I'm not greedy.",
+      "output": "我不貪婪。",
+      "pair": "3267389",
+      "primary": true,
+      "criterion": "否定说话者贪婪。",
+      "predictions": {
+        "before": {
+          "answer": "我不嫉妒。",
+          "token_ids": [
+            2729,
+            11948,
+            7935,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "嫉妒和贪婪是不同的特征。"
+        },
+        "small": {
+          "answer": "我很不高兴。",
+          "token_ids": [
+            218,
+            2786,
+            190,
+            5728,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把不贪婪换成不高兴。"
+        },
+        "wide": {
+          "answer": "我沒有出現在。",
+          "token_ids": [
+            218,
+            343,
+            155,
+            239,
+            289,
+            749,
+            112,
+            261,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "谈未出现，遗漏贪婪。"
+        },
+        "focused": {
+          "answer": "我不是死板的。",
+          "token_ids": [
+            10471,
+            548,
+            2672,
+            209,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "不死板不等于不贪婪。"
+        }
+      }
+    },
+    {
+      "id": "3267389-zh-en",
+      "group": "negative",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #3267389 (Ricardo14) & #6333811 (verdastelo9604)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我不貪婪。",
+      "output": "I'm not greedy.",
+      "pair": "3267389",
+      "primary": true,
+      "criterion": "否定说话者贪婪。",
+      "predictions": {
+        "before": {
+          "answer": "I do not order juice.",
+          "token_ids": [
+            32,
+            1137,
+            717,
+            11279,
+            2102,
+            75,
+            2329,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成不点果汁。"
+        },
+        "small": {
+          "answer": "I don't have to.",
+          "token_ids": [
+            32,
+            407,
+            392,
+            2683,
+            928,
+            448,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "译成没有义务，贪婪消失。"
+        },
+        "wide": {
+          "answer": "I can't buy annual.",
+          "token_ids": [
+            32,
+            1793,
+            2683,
+            12970,
+            1269,
+            68,
+            14987,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "加入购买和能力，未表达不贪婪。"
+        },
+        "focused": {
+          "answer": "I didn't feel like an hour.",
+          "token_ids": [
+            32,
+            2292,
+            68,
+            2683,
+            9757,
+            2214,
+            1269,
+            4728,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "提到感觉和一小时，未译出不贪婪。"
+        }
+      }
+    },
+    {
+      "id": "3010330-en-zh",
+      "group": "negative",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #3010330 (Hybrid) & #5965720 (verdastelo9604)",
+      "instruction": "把这句话译成中文。",
+      "input": "Tom didn't write Mary back.",
+      "output": "湯姆沒回覆瑪麗。",
+      "pair": "3010330",
+      "primary": true,
+      "criterion": "否定回复对方的行为，不能改成从未写信。",
+      "predictions": {
+        "before": {
+          "answer": "湯姆不來不來。",
+          "token_ids": [
+            1134,
+            97,
+            313,
+            143,
+            190,
+            254,
+            143,
+            190,
+            254,
+            143,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把未回信改成不来，玛丽也丢失。"
+        },
+        "small": {
+          "answer": "湯姆沒寫瑪麗。",
+          "token_ids": [
+            1134,
+            97,
+            313,
+            143,
+            343,
+            155,
+            301,
+            94,
+            865,
+            93,
+            1062,
+            160,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "“没写玛丽”不表示没有给玛丽回信。"
+        },
+        "wide": {
+          "answer": "湯姆沒有把瑪麗不難。",
+          "token_ids": [
+            1134,
+            97,
+            313,
+            143,
+            343,
+            155,
+            239,
+            405,
+            865,
+            93,
+            1062,
+            160,
+            190,
+            429,
+            86,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "两个人名出现，否定的事件无法辨认。"
+        },
+        "focused": {
+          "answer": "湯姆沒有寫瑪麗。",
+          "token_ids": [
+            1134,
+            97,
+            313,
+            143,
+            343,
+            155,
+            239,
+            301,
+            94,
+            865,
+            93,
+            1062,
+            160,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "辨出了两个人和写，但没有保留“回复”的关系。"
+        }
+      }
+    },
+    {
+      "id": "3010330-zh-en",
+      "group": "negative",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #3010330 (Hybrid) & #5965720 (verdastelo9604)",
+      "instruction": "Translate this sentence into English.",
+      "input": "湯姆沒回覆瑪麗。",
+      "output": "Tom didn't write Mary back.",
+      "pair": "3010330",
+      "primary": true,
+      "criterion": "否定回复对方的行为，不能改成从未写信。",
+      "predictions": {
+        "before": {
+          "answer": "Tom helped Mary buy everything.",
+          "token_ids": [
+            43,
+            522,
+            6019,
+            671,
+            3124,
+            79,
+            12970,
+            5511,
+            1338,
+            514,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把没有回复改成帮玛丽买东西。"
+        },
+        "small": {
+          "answer": "Tom didn't mean to Mary.",
+          "token_ids": [
+            43,
+            522,
+            2292,
+            68,
+            2683,
+            3675,
+            448,
+            3124,
+            79,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "没有表示回复的动词。"
+        },
+        "wide": {
+          "answer": "Tom is later.",
+          "token_ids": [
+            43,
+            522,
+            740,
+            420,
+            543,
+            375,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成汤姆较迟，玛丽和回应都消失。"
+        },
+        "focused": {
+          "answer": "Tom is shy and Mary were both born.",
+          "token_ids": [
+            43,
+            522,
+            740,
+            1457,
+            79,
+            509,
+            3124,
+            79,
+            2192,
+            3746,
+            7759,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "加入害羞和出生，未译出回复。"
+        }
+      }
+    },
+    {
+      "id": "6531676-en-zh",
+      "group": "negative",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #6531676 (CK) & #13137955 (LeviHighway)",
+      "instruction": "把这句话译成中文。",
+      "input": "I didn't mean to say that.",
+      "output": "我沒想那麼說。",
+      "pair": "6531676",
+      "primary": true,
+      "criterion": "否定说那句话的意图，不是否认说过。",
+      "predictions": {
+        "before": {
+          "answer": "我不想聽不到那麼。",
+          "token_ids": [
+            218,
+            2512,
+            980,
+            111,
+            2763,
+            236,
+            1062,
+            110,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把没打算说改成有关听不见的残句。"
+        },
+        "small": {
+          "answer": "我沒想弄壞的。",
+          "token_ids": [
+            218,
+            343,
+            155,
+            614,
+            1306,
+            371,
+            167,
+            209,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "保留无意，但说话换成弄坏东西。"
+        },
+        "wide": {
+          "answer": "我沒想那麼說的。",
+          "token_ids": [
+            218,
+            343,
+            155,
+            614,
+            236,
+            1062,
+            110,
+            2642,
+            93,
+            209,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": true,
+          "detail": true,
+          "reason": "“没想那么说的”准确否定说那句话的意图。"
+        },
+        "focused": {
+          "answer": "我沒想那麼說。",
+          "token_ids": [
+            218,
+            343,
+            155,
+            614,
+            236,
+            1062,
+            110,
+            2642,
+            93,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": true,
+          "meaning": true,
+          "detail": true,
+          "reason": "与参考译文一致。"
+        }
+      }
+    },
+    {
+      "id": "6531676-zh-en",
+      "group": "negative",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #6531676 (CK) & #13137955 (LeviHighway)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我沒想那麼說。",
+      "output": "I didn't mean to say that.",
+      "pair": "6531676",
+      "primary": true,
+      "criterion": "否定说那句话的意图，不是否认说过。",
+      "predictions": {
+        "before": {
+          "answer": "I'm not guilty of anything.",
+          "token_ids": [
+            32,
+            8,
+            67,
+            717,
+            14971,
+            518,
+            3408,
+            1338,
+            514,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把无意说那句话改成自己没有罪。"
+        },
+        "small": {
+          "answer": "I didn't mean to that.",
+          "token_ids": [
+            32,
+            2292,
+            68,
+            2683,
+            3675,
+            448,
+            734,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "有否定意图的开头，但缺少说这一动作，无法还原原意。"
+        },
+        "wide": {
+          "answer": "I didn't mean to say that.",
+          "token_ids": [
+            32,
+            2292,
+            68,
+            2683,
+            3675,
+            448,
+            1832,
+            734,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": true,
+          "meaning": true,
+          "detail": true,
+          "reason": "与参考译文一致。"
+        },
+        "focused": {
+          "answer": "I didn't mean to say that.",
+          "token_ids": [
+            32,
+            2292,
+            68,
+            2683,
+            3675,
+            448,
+            1832,
+            734,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": true,
+          "meaning": true,
+          "detail": true,
+          "reason": "与参考译文一致。"
+        }
+      }
+    },
+    {
+      "id": "714329-en-zh",
+      "group": "quantity",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #714329 (CM) & #714328 (egg0073)",
+      "instruction": "把这句话译成中文。",
+      "input": "My watch is five minutes slow.",
+      "output": "我的錶慢了五分鐘。",
+      "pair": "714329",
+      "primary": true,
+      "criterion": "钟表误差为五分钟。快慢方向和归属另计入整句。",
+      "predictions": {
+        "before": {
+          "answer": "我的父親是真的。",
+          "token_ids": [
+            1291,
+            583,
+            3410,
+            93,
+            211,
+            7601,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把手表误差改成父亲的事情。"
+        },
+        "small": {
+          "answer": "我对他的态度变了。",
+          "token_ids": [
+            218,
+            830,
+            1727,
+            9147,
+            1839,
+            9062,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "改成对他的态度有变化。"
+        },
+        "wide": {
+          "answer": "我的手錶出了毛病。",
+          "token_ids": [
+            1291,
+            452,
+            131,
+            149,
+            104,
+            3343,
+            1688,
+            1008,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只说手表有毛病，遗漏慢了几分钟。"
+        },
+        "focused": {
+          "answer": "我的手錶慢了這個機。",
+          "token_ids": [
+            1291,
+            452,
+            131,
+            149,
+            104,
+            1641,
+            186,
+            295,
+            162,
+            396,
+            148,
+            6598,
+            168,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "认出手表慢，未译出五分钟。"
+        }
+      }
+    },
+    {
+      "id": "714329-zh-en",
+      "group": "quantity",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #714329 (CM) & #714328 (egg0073)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我的錶慢了五分鐘。",
+      "output": "My watch is five minutes slow.",
+      "pair": "714329",
+      "primary": true,
+      "criterion": "钟表误差为五分钟。快慢方向和归属另计入整句。",
+      "predictions": {
+        "before": {
+          "answer": "My baby began crying, asking for milk.",
+          "token_ids": [
+            36,
+            79,
+            12710,
+            79,
+            3952,
+            519,
+            9031,
+            514,
+            12,
+            8788,
+            514,
+            757,
+            286,
+            1381,
+            65,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成宝宝哭着要奶。"
+        },
+        "small": {
+          "answer": "My camera can shoot high-definition video.",
+          "token_ids": [
+            36,
+            79,
+            410,
+            1150,
+            375,
+            55,
+            1793,
+            15036,
+            503,
+            5197,
+            13,
+            2494,
+            60,
+            292,
+            5989,
+            1429,
+            3451,
+            69,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "改成相机能拍高清视频。"
+        },
+        "wide": {
+          "answer": "My watch is collered with my watch.",
+          "token_ids": [
+            36,
+            79,
+            10492,
+            740,
+            5041,
+            381,
+            59,
+            3704,
+            819,
+            602,
+            10492,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "认出手表，却未给出五分钟误差。"
+        },
+        "focused": {
+          "answer": "My watch is waterproof.",
+          "token_ids": [
+            36,
+            79,
+            10492,
+            740,
+            12327,
+            70,
+            72,
+            11424,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "防水性不能表达手表慢五分钟。"
+        }
+      }
+    },
+    {
+      "id": "32854-en-zh",
+      "group": "quantity",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #32854 (CK) & #429140 (fucongcong)",
+      "instruction": "把这句话译成中文。",
+      "input": "Believe it or not, she has three children.",
+      "output": "她有三个孩子，信不信由你。",
+      "pair": "32854",
+      "primary": true,
+      "criterion": "孩子的数量为三个。",
+      "predictions": {
+        "before": {
+          "answer": "請給她，但我把它丢了。",
+          "token_ids": [
+            130,
+            94,
+            148,
+            5845,
+            89,
+            235,
+            107,
+            173,
+            867,
+            7928,
+            185,
+            140,
+            4022,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成给东西和丢了东西。"
+        },
+        "small": {
+          "answer": "她的離開心。",
+          "token_ids": [
+            235,
+            107,
+            209,
+            429,
+            85,
+            131,
+            159,
+            148,
+            380,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "没有孩子或数量。"
+        },
+        "wide": {
+          "answer": "請把她或不來，她是個孩子。",
+          "token_ids": [
+            130,
+            94,
+            148,
+            405,
+            235,
+            107,
+            1220,
+            190,
+            254,
+            143,
+            173,
+            235,
+            107,
+            211,
+            396,
+            148,
+            2586,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把她有孩子改成她是个孩子，且缺少三个。"
+        },
+        "focused": {
+          "answer": "不再过，她不孩子们。",
+          "token_ids": [
+            190,
+            571,
+            412,
+            173,
+            235,
+            107,
+            190,
+            2586,
+            353,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "含孩子一词，三个以及她有孩子的关系都未表达。"
+        }
+      }
+    },
+    {
+      "id": "32854-zh-en",
+      "group": "quantity",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #32854 (CK) & #429140 (fucongcong)",
+      "instruction": "Translate this sentence into English.",
+      "input": "她有三个孩子，信不信由你。",
+      "output": "Believe it or not, she has three children.",
+      "pair": "32854",
+      "primary": true,
+      "criterion": "孩子的数量为三个。",
+      "predictions": {
+        "before": {
+          "answer": "She's not, not, not injured.",
+          "token_ids": [
+            42,
+            231,
+            721,
+            717,
+            12,
+            717,
+            12,
+            717,
+            14721,
+            9533,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把有三个孩子换成没有受伤。"
+        },
+        "small": {
+          "answer": "She has three brothers of her work.",
+          "token_ids": [
+            42,
+            231,
+            6697,
+            7410,
+            2760,
+            73,
+            518,
+            1249,
+            10228,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "数字三出现，但孩子被换成兄弟。"
+        },
+        "wide": {
+          "answer": "She has just able to you.",
+          "token_ids": [
+            42,
+            231,
+            6697,
+            5783,
+            259,
+            1636,
+            448,
+            451,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "英语残句没有孩子或数量。"
+        },
+        "focused": {
+          "answer": "She's a child, she had no objection.",
+          "token_ids": [
+            42,
+            231,
+            721,
+            259,
+            4129,
+            12,
+            1667,
+            2274,
+            1149,
+            6214,
+            64,
+            59,
+            4003,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "译成她自己是孩子，还加上没有异议。"
+        }
+      }
+    },
+    {
+      "id": "6222208-en-zh",
+      "group": "quantity",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #6222208 (CK) & #864345 (Martha)",
+      "instruction": "把这句话译成中文。",
+      "input": "I'm three years younger than you are.",
+      "output": "我比你小三歲。",
+      "pair": "6222208",
+      "primary": true,
+      "criterion": "年龄差为三岁。比较方向和人称另计入整句。",
+      "predictions": {
+        "before": {
+          "answer": "我比你比你比你。",
+          "token_ids": [
+            218,
+            1126,
+            242,
+            1126,
+            242,
+            1126,
+            242,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "重复“比你”，没有三岁或年轻。"
+        },
+        "small": {
+          "answer": "我很高兴你比你比你最好不要立刻做。",
+          "token_ids": [
+            218,
+            2786,
+            5728,
+            242,
+            1126,
+            242,
+            1126,
+            242,
+            6282,
+            1500,
+            9819,
+            546,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "出现比较词，没有明确年龄差。"
+        },
+        "wide": {
+          "answer": "我年約年約年約年約年。",
+          "token_ids": [
+            218,
+            619,
+            563,
+            141,
+            619,
+            563,
+            141,
+            619,
+            563,
+            141,
+            619,
+            563,
+            141,
+            619,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "重复年龄有关的字，丢失比较和三岁。"
+        },
+        "focused": {
+          "answer": "我比你多三歲。",
+          "token_ids": [
+            218,
+            1126,
+            242,
+            515,
+            318,
+            214,
+            100,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": true,
+          "reason": "保留三岁的年龄差，却把我比你年轻译成我比你年长。"
+        }
+      }
+    },
+    {
+      "id": "6222208-zh-en",
+      "group": "quantity",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #6222208 (CK) & #864345 (Martha)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我比你小三歲。",
+      "output": "I'm three years younger than you are.",
+      "pair": "6222208",
+      "primary": true,
+      "criterion": "年龄差为三岁。比较方向和人称另计入整句。",
+      "predictions": {
+        "before": {
+          "answer": "I can't believe you did this.",
+          "token_ids": [
+            32,
+            1793,
+            2683,
+            8830,
+            451,
+            2292,
+            961,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把年龄比较换成不敢相信。"
+        },
+        "small": {
+          "answer": "I'm really surprised you got a prize.",
+          "token_ids": [
+            32,
+            8,
+            67,
+            921,
+            11732,
+            274,
+            11444,
+            72,
+            6613,
+            451,
+            12439,
+            259,
+            4839,
+            14539,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成惊讶于对方获奖。"
+        },
+        "wide": {
+          "answer": "I am three weeks at all right.",
+          "token_ids": [
+            32,
+            1616,
+            7410,
+            778,
+            59,
+            4256,
+            1570,
+            1225,
+            5243,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "三岁被换成三个星期。"
+        },
+        "focused": {
+          "answer": "I three three three in three.",
+          "token_ids": [
+            32,
+            7410,
+            7410,
+            7410,
+            608,
+            7410,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只重复 three，没有年龄单位或比较。"
+        }
+      }
+    },
+    {
+      "id": "1492179-en-zh",
+      "group": "quantity",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #1492179 (CK) & #6059525 (verdastelo9604)",
+      "instruction": "把这句话译成中文。",
+      "input": "I eat meat three times a week.",
+      "output": "我每周吃肉三次。",
+      "pair": "1492179",
+      "primary": true,
+      "criterion": "吃肉频率为每周三次，保留次数和周期。",
+      "predictions": {
+        "before": {
+          "answer": "我喝牛奶。",
+          "token_ids": [
+            218,
+            897,
+            1402,
+            773,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成喝牛奶，完全丢失频率。"
+        },
+        "small": {
+          "answer": "我吃午饭。",
+          "token_ids": [
+            218,
+            526,
+            3609,
+            1070,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只译成吃午饭，遗漏肉和每周三次。"
+        },
+        "wide": {
+          "answer": "我吃午饭足够三个人吃。",
+          "token_ids": [
+            218,
+            526,
+            3609,
+            1070,
+            1217,
+            3559,
+            5473,
+            526,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "三次变成三个人，吃肉和每周的频率丢失。"
+        },
+        "focused": {
+          "answer": "我吃午饭足球员。",
+          "token_ids": [
+            218,
+            526,
+            3609,
+            1070,
+            1217,
+            7676,
+            1120,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "提到午饭和足球员，未表达频率。"
+        }
+      }
+    },
+    {
+      "id": "1492179-zh-en",
+      "group": "quantity",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #1492179 (CK) & #6059525 (verdastelo9604)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我每周吃肉三次。",
+      "output": "I eat meat three times a week.",
+      "pair": "1492179",
+      "primary": true,
+      "criterion": "吃肉频率为每周三次，保留次数和周期。",
+      "predictions": {
+        "before": {
+          "answer": "I like tea to eat snacks.",
+          "token_ids": [
+            32,
+            2214,
+            210,
+            1138,
+            448,
+            13541,
+            274,
+            68,
+            2660,
+            73,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把吃肉改成茶和零食，未译出频率。"
+        },
+        "small": {
+          "answer": "I have to eat lunchool in Boston.",
+          "token_ids": [
+            32,
+            928,
+            448,
+            13541,
+            420,
+            2470,
+            728,
+            4708,
+            608,
+            695,
+            1785,
+            392,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "加入波士顿和午餐，未表达每周三次。"
+        },
+        "wide": {
+          "answer": "I spend to eat lunch at all.",
+          "token_ids": [
+            32,
+            1294,
+            1622,
+            448,
+            13541,
+            420,
+            2470,
+            728,
+            1570,
+            1225,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "谈吃午饭，遗漏肉、次数和周期。"
+        },
+        "focused": {
+          "answer": "I have three weeks.",
+          "token_ids": [
+            32,
+            928,
+            7410,
+            778,
+            59,
+            4256,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "三个星期是时长，不是每周吃三次。"
+        }
+      }
+    },
+    {
+      "id": "8075346-en-zh",
+      "group": "quantity",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #8075346 (CK) & #8387376 (wangchou)",
+      "instruction": "把这句话译成中文。",
+      "input": "We ran three kilometers.",
+      "output": "我們跑了三公里。",
+      "pair": "8075346",
+      "primary": true,
+      "criterion": "跑步距离为三公里。",
+      "predictions": {
+        "before": {
+          "answer": "我們通常飯後喝。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            1109,
+            977,
+            401,
+            97,
+            1386,
+            897,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成通常饭后喝东西，遗漏跑步和距离。"
+        },
+        "small": {
+          "answer": "我們有充足的時間。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            239,
+            2859,
+            1217,
+            209,
+            426,
+            139,
+            131,
+            159,
+            156,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把三公里改成有充足时间。"
+        },
+        "wide": {
+          "answer": "我們有兩張過。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            239,
+            184,
+            92,
+            237,
+            103,
+            191,
+            151,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "量词和数字均不符，没有跑步。"
+        },
+        "focused": {
+          "answer": "我们三個小時候。",
+          "token_ids": [
+            678,
+            318,
+            396,
+            148,
+            345,
+            426,
+            139,
+            1160,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "有数字三，未表达跑步或公里。"
+        }
+      }
+    },
+    {
+      "id": "8075346-zh-en",
+      "group": "quantity",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #8075346 (CK) & #8387376 (wangchou)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我們跑了三公里。",
+      "output": "We ran three kilometers.",
+      "pair": "8075346",
+      "primary": true,
+      "criterion": "跑步距离为三公里。",
+      "predictions": {
+        "before": {
+          "answer": "We don't have anything.",
+          "token_ids": [
+            46,
+            59,
+            407,
+            392,
+            2683,
+            928,
+            3408,
+            1338,
+            514,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "译成什么都没有。"
+        },
+        "small": {
+          "answer": "We don't have to be in Boston.",
+          "token_ids": [
+            46,
+            59,
+            407,
+            392,
+            2683,
+            928,
+            448,
+            555,
+            608,
+            695,
+            1785,
+            392,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成不必在波士顿。"
+        },
+        "wide": {
+          "answer": "We have three sandwork.",
+          "token_ids": [
+            46,
+            59,
+            928,
+            7410,
+            274,
+            1231,
+            77,
+            4836,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只留下三，未译出跑步距离。"
+        },
+        "focused": {
+          "answer": "We have three parket on Sunday.",
+          "token_ids": [
+            46,
+            59,
+            928,
+            7410,
+            454,
+            5196,
+            664,
+            1006,
+            7432,
+            316,
+            635,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "有 three，但没有跑步或公里，还加上周日。"
+        }
+      }
+    },
+    {
+      "id": "530682-en-zh",
+      "group": "quantity",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #530682 (papabear) & #905793 (Martha)",
+      "instruction": "把这句话译成中文。",
+      "input": "This ticket is valid for three days.",
+      "output": "這張票的有效期是三天。",
+      "pair": "530682",
+      "primary": false,
+      "criterion": "票的有效期为三天。",
+      "predictions": {
+        "before": {
+          "answer": "這個杯子裡的水。",
+          "token_ids": [
+            295,
+            162,
+            396,
+            148,
+            1534,
+            271,
+            838,
+            84,
+            209,
+            556,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只提到杯中的水。"
+        },
+        "small": {
+          "answer": "這個人都很高。",
+          "token_ids": [
+            295,
+            162,
+            396,
+            148,
+            2976,
+            2786,
+            634,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成人很高，未译出票的有效期。"
+        },
+        "wide": {
+          "answer": "这家店在牢骚。",
+          "token_ids": [
+            247,
+            331,
+            1483,
+            261,
+            2017,
+            579,
+            163,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成店和牢骚，遗漏票及有效期。"
+        },
+        "focused": {
+          "answer": "这家旅行转帐付款。",
+          "token_ids": [
+            247,
+            331,
+            11299,
+            314,
+            1003,
+            1279,
+            1608,
+            4675,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "谈旅行付款，未说三天有效。"
+        }
+      }
+    },
+    {
+      "id": "530682-zh-en",
+      "group": "quantity",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #530682 (papabear) & #905793 (Martha)",
+      "instruction": "Translate this sentence into English.",
+      "input": "這張票的有效期是三天。",
+      "output": "This ticket is valid for three days.",
+      "pair": "530682",
+      "primary": false,
+      "criterion": "票的有效期为三天。",
+      "predictions": {
+        "before": {
+          "answer": "This is little water in the pond.",
+          "token_ids": [
+            43,
+            62,
+            332,
+            740,
+            4699,
+            12327,
+            608,
+            312,
+            454,
+            1841,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成池塘里水少。"
+        },
+        "small": {
+          "answer": "This is the most important me.",
+          "token_ids": [
+            43,
+            62,
+            332,
+            740,
+            312,
+            3107,
+            5430,
+            2056,
+            1491,
+            698,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成关于重要性的残句。"
+        },
+        "wide": {
+          "answer": "This plan is a very ticketic afternoon.",
+          "token_ids": [
+            43,
+            62,
+            332,
+            2258,
+            519,
+            740,
+            259,
+            3717,
+            210,
+            2521,
+            664,
+            1629,
+            5839,
+            10068,
+            392,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "虽有类似 ticket 的拼写，没表达票三天有效。"
+        },
+        "focused": {
+          "answer": "This is going to be a table of this year.",
+          "token_ids": [
+            43,
+            62,
+            332,
+            740,
+            1694,
+            514,
+            448,
+            555,
+            259,
+            210,
+            3838,
+            518,
+            961,
+            15095,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成有关桌子和年份的句子。"
+        }
+      }
+    },
+    {
+      "id": "788259-en-zh",
+      "group": "time",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #788259 (hrin) & #780272 (Martha)",
+      "instruction": "把这句话译成中文。",
+      "input": "We ate curry rice last night.",
+      "output": "我們昨晚吃了咖哩飯。",
+      "pair": "788259",
+      "primary": true,
+      "criterion": "吃饭这一事件发生在昨晚。",
+      "predictions": {
+        "before": {
+          "answer": "我們的友情會長久留存。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            209,
+            3008,
+            882,
+            201,
+            140,
+            464,
+            105,
+            1274,
+            959,
+            2713,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成友谊长久。"
+        },
+        "small": {
+          "answer": "我們有很久時開。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            239,
+            2786,
+            1274,
+            426,
+            139,
+            131,
+            159,
+            148,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "译文没有可辨认的进餐事件或昨晚。"
+        },
+        "wide": {
+          "answer": "我們去年約。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            238,
+            619,
+            563,
+            141,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "昨晚变成去年，进餐也消失。"
+        },
+        "focused": {
+          "answer": "昨晚下大雨。",
+          "token_ids": [
+            11222,
+            263,
+            11311,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "昨晚保留了，吃咖喱饭却变成下大雨，时间没有绑定原事件。"
+        }
+      }
+    },
+    {
+      "id": "788259-zh-en",
+      "group": "time",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #788259 (hrin) & #780272 (Martha)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我們昨晚吃了咖哩飯。",
+      "output": "We ate curry rice last night.",
+      "pair": "788259",
+      "primary": true,
+      "criterion": "吃饭这一事件发生在昨晚。",
+      "predictions": {
+        "before": {
+          "answer": "We can't for coffee.",
+          "token_ids": [
+            46,
+            59,
+            1793,
+            2683,
+            757,
+            5041,
+            60,
+            1847,
+            59,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成涉及咖啡的残句。"
+        },
+        "small": {
+          "answer": "We're ready to coffee.",
+          "token_ids": [
+            46,
+            59,
+            8,
+            297,
+            9505,
+            448,
+            5041,
+            60,
+            1847,
+            59,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "输出准备喝咖啡，遗漏昨晚吃咖喱饭。"
+        },
+        "wide": {
+          "answer": "We ate ate pizz after colle.",
+          "token_ids": [
+            46,
+            59,
+            1570,
+            59,
+            1570,
+            59,
+            454,
+            3368,
+            80,
+            5839,
+            5041,
+            381,
+            59,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "提到吃，却没有昨晚，食物也不同。"
+        },
+        "focused": {
+          "answer": "We had lunch at home last night.",
+          "token_ids": [
+            46,
+            59,
+            2274,
+            420,
+            2470,
+            728,
+            1570,
+            5155,
+            5907,
+            3750,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": true,
+          "reason": "正确把用餐放在昨晚，咖喱饭却变成午餐，并新增在家。"
+        }
+      }
+    },
+    {
+      "id": "1488371-en-zh",
+      "group": "time",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #1488371 (marco87) & #6093308 (verdastelo9604)",
+      "instruction": "把这句话译成中文。",
+      "input": "I'm studying in the library.",
+      "output": "我正在图书馆学习。",
+      "pair": "1488371",
+      "primary": true,
+      "criterion": "正在学习，不能只说明通常在哪里学习。",
+      "predictions": {
+        "before": {
+          "answer": "我正在用現在這個問題。",
+          "token_ids": [
+            218,
+            2191,
+            534,
+            749,
+            112,
+            261,
+            295,
+            162,
+            396,
+            148,
+            772,
+            152,
+            438,
+            149,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "有正在的形式，但没有绑定学习。"
+        },
+        "small": {
+          "answer": "我在沙發上砍下了一首車。",
+          "token_ids": [
+            218,
+            261,
+            951,
+            428,
+            110,
+            249,
+            2020,
+            263,
+            631,
+            1078,
+            130,
+            109,
+            147,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "现在图书馆学习被换成沙发上的不明动作。"
+        },
+        "wide": {
+          "answer": "我在陽在學習裡。",
+          "token_ids": [
+            6351,
+            363,
+            111,
+            261,
+            215,
+            106,
+            790,
+            155,
+            838,
+            84,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "出现“学习”，但“在学习里”的地点结构混乱，未明确说正在学习。"
+        },
+        "focused": {
+          "answer": "在在在学习外見外。",
+          "token_ids": [
+            261,
+            261,
+            261,
+            1295,
+            3666,
+            573,
+            3410,
+            148,
+            573,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": true,
+          "reason": "可辨出“在学习”，但前后重复并生成无关字，图书馆和主语没有译清楚。"
+        }
+      }
+    },
+    {
+      "id": "1488371-zh-en",
+      "group": "time",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #1488371 (marco87) & #6093308 (verdastelo9604)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我正在图书馆学习。",
+      "output": "I'm studying in the library.",
+      "pair": "1488371",
+      "primary": true,
+      "criterion": "正在学习，不能只说明通常在哪里学习。",
+      "predictions": {
+        "before": {
+          "answer": "I'm drinking apple juice.",
+          "token_ids": [
+            32,
+            8,
+            67,
+            13708,
+            514,
+            3860,
+            627,
+            2102,
+            75,
+            2329,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "正在喝苹果汁，进行体用在另一个事件上。"
+        },
+        "small": {
+          "answer": "I'm glad to was there.",
+          "token_ids": [
+            32,
+            8,
+            67,
+            14502,
+            448,
+            1715,
+            1771,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成高兴到过某处。"
+        },
+        "wide": {
+          "answer": "I'm the desk in a book at the desk.",
+          "token_ids": [
+            32,
+            8,
+            67,
+            312,
+            2943,
+            65,
+            608,
+            259,
+            11589,
+            1570,
+            312,
+            2943,
+            65,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "提到桌子和书，没有表达学习活动。"
+        },
+        "focused": {
+          "answer": "I'm learning a book to learn.",
+          "token_ids": [
+            32,
+            8,
+            67,
+            8893,
+            514,
+            259,
+            11589,
+            448,
+            8893,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": true,
+          "reason": "进行式 learning 保留正在学习，后半残缺且遗漏图书馆。"
+        }
+      }
+    },
+    {
+      "id": "4664972-en-zh",
+      "group": "time",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #4664972 (CK) & #6075706 (verdastelo9604)",
+      "instruction": "把这句话译成中文。",
+      "input": "Tom finished college last year.",
+      "output": "湯姆去年上完了大學。",
+      "pair": "4664972",
+      "primary": true,
+      "criterion": "完成大学学业发生在去年。",
+      "predictions": {
+        "before": {
+          "answer": "湯姆卖咖啡。",
+          "token_ids": [
+            1134,
+            97,
+            313,
+            143,
+            1586,
+            384,
+            159,
+            772,
+            84,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成卖咖啡，没有去年或学业。"
+        },
+        "small": {
+          "answer": "汤姆去年去了波士顿了。",
+          "token_ids": [
+            1937,
+            313,
+            143,
+            238,
+            619,
+            672,
+            2784,
+            702,
+            1826,
+            186,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "去年保留，大专学业完成变成去了波士顿。"
+        },
+        "wide": {
+          "answer": "湯姆讓我們去年去了伦敦了。",
+          "token_ids": [
+            1134,
+            97,
+            313,
+            143,
+            300,
+            156,
+            218,
+            396,
+            154,
+            238,
+            619,
+            672,
+            4504,
+            248,
+            89,
+            186,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "去年的事件变成让我们去伦敦。"
+        },
+        "focused": {
+          "answer": "湯姆去年去了咎世。",
+          "token_ids": [
+            1134,
+            97,
+            313,
+            143,
+            238,
+            619,
+            672,
+            384,
+            151,
+            1104,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "有去年，却未表达读完大学。"
+        }
+      }
+    },
+    {
+      "id": "4664972-zh-en",
+      "group": "time",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #4664972 (CK) & #6075706 (verdastelo9604)",
+      "instruction": "Translate this sentence into English.",
+      "input": "湯姆去年上完了大學。",
+      "output": "Tom finished college last year.",
+      "pair": "4664972",
+      "primary": true,
+      "criterion": "完成大学学业发生在去年。",
+      "predictions": {
+        "before": {
+          "answer": "Tom will probably never be late again.",
+          "token_ids": [
+            43,
+            522,
+            1132,
+            2225,
+            56,
+            3924,
+            941,
+            3289,
+            555,
+            8160,
+            2474,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把去年毕业换成将来大概不再迟到。"
+        },
+        "small": {
+          "answer": "Tom visited to study to the stepper spray in the step.",
+          "token_ids": [
+            43,
+            522,
+            12635,
+            671,
+            448,
+            875,
+            4855,
+            79,
+            448,
+            312,
+            875,
+            1821,
+            3906,
+            1294,
+            5174,
+            608,
+            312,
+            875,
+            1821,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "提到 study，未表达毕业或去年。"
+        },
+        "wide": {
+          "answer": "Tom visited last year.",
+          "token_ids": [
+            43,
+            522,
+            12635,
+            671,
+            5907,
+            15095,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "去年保留，完成学业换成拜访。"
+        },
+        "focused": {
+          "answer": "Tom visited to go to school last year.",
+          "token_ids": [
+            43,
+            522,
+            12635,
+            671,
+            448,
+            1694,
+            448,
+            274,
+            728,
+            4708,
+            5907,
+            15095,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "虽提到去年和学校，去上学并不表示完成大学学业。"
+        }
+      }
+    },
+    {
+      "id": "73151-en-zh",
+      "group": "time",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #73151 (CK) & #366884 (fucongcong)",
+      "instruction": "把这句话译成中文。",
+      "input": "He left an hour ago.",
+      "output": "他一小时前走了。",
+      "pair": "73151",
+      "primary": true,
+      "criterion": "离开发生在一小时前。",
+      "predictions": {
+        "before": {
+          "answer": "他喝了三瓶啤酒。",
+          "token_ids": [
+            240,
+            897,
+            7475,
+            2961,
+            772,
+            87,
+            544,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成喝三瓶啤酒。"
+        },
+        "small": {
+          "answer": "他以前住在这儿。",
+          "token_ids": [
+            240,
+            470,
+            351,
+            496,
+            5665,
+            307,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成他以前住在这里。"
+        },
+        "wide": {
+          "answer": "他给自己一个人走。",
+          "token_ids": [
+            240,
+            1004,
+            1159,
+            2627,
+            449,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "提到走，遗漏一小时前。"
+        },
+        "focused": {
+          "answer": "他三年前死了。",
+          "token_ids": [
+            240,
+            12958,
+            1986,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成三年前去世，时间和事件都错。"
+        }
+      }
+    },
+    {
+      "id": "73151-zh-en",
+      "group": "time",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #73151 (CK) & #366884 (fucongcong)",
+      "instruction": "Translate this sentence into English.",
+      "input": "他一小时前走了。",
+      "output": "He left an hour ago.",
+      "pair": "73151",
+      "primary": true,
+      "criterion": "离开发生在一小时前。",
+      "predictions": {
+        "before": {
+          "answer": "It's not to eat something delicious.",
+          "token_ids": [
+            32,
+            74,
+            721,
+            717,
+            448,
+            13541,
+            10448,
+            9836,
+            1629,
+            4663,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成有关吃东西的句子。"
+        },
+        "small": {
+          "answer": "I'm sorry to take my medic.",
+          "token_ids": [
+            32,
+            8,
+            67,
+            274,
+            344,
+            1642,
+            448,
+            2904,
+            602,
+            15039,
+            1629,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "人称和事件都变了，遗漏离开时间。"
+        },
+        "wide": {
+          "answer": "He has been to leave.",
+          "token_ids": [
+            31,
+            59,
+            6697,
+            3511,
+            448,
+            3972,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "有 leave，但无明确一小时前，时态结构也有误。"
+        },
+        "focused": {
+          "answer": "He is going to be out of fin.",
+          "token_ids": [
+            31,
+            59,
+            740,
+            1694,
+            514,
+            448,
+            555,
+            2443,
+            518,
+            366,
+            292,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成将来的不完整事件。"
+        }
+      }
+    },
+    {
+      "id": "2737521-en-zh",
+      "group": "time",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #2737521 (CM) & #2737430 (egg0073)",
+      "instruction": "把这句话译成中文。",
+      "input": "They got here yesterday.",
+      "output": "他們昨天到這裡的。",
+      "pair": "2737521",
+      "primary": true,
+      "criterion": "到达这件事发生在昨天。",
+      "predictions": {
+        "before": {
+          "answer": "他們在這裡這裡等。",
+          "token_ids": [
+            240,
+            396,
+            154,
+            261,
+            295,
+            162,
+            838,
+            84,
+            295,
+            162,
+            838,
+            84,
+            385,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "到达改成在这里等，昨天也丢失。"
+        },
+        "small": {
+          "answer": "他們親到這裡。",
+          "token_ids": [
+            240,
+            396,
+            154,
+            3410,
+            93,
+            320,
+            295,
+            162,
+            838,
+            84,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "提到他们到这里，但没有昨天。"
+        },
+        "wide": {
+          "answer": "昨天这儿玩了。",
+          "token_ids": [
+            1626,
+            347,
+            247,
+            307,
+            3560,
+            186,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "昨天和此地保留，到达变成玩。"
+        },
+        "focused": {
+          "answer": "他們昨天到這裡。",
+          "token_ids": [
+            240,
+            396,
+            154,
+            1626,
+            347,
+            320,
+            295,
+            162,
+            838,
+            84,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": true,
+          "detail": true,
+          "reason": "人物、昨天和到这里的事件齐全，句末不用“的”也自然。"
+        }
+      }
+    },
+    {
+      "id": "2737521-zh-en",
+      "group": "time",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #2737521 (CM) & #2737430 (egg0073)",
+      "instruction": "Translate this sentence into English.",
+      "input": "他們昨天到這裡的。",
+      "output": "They got here yesterday.",
+      "pair": "2737521",
+      "primary": true,
+      "criterion": "到达这件事发生在昨天。",
+      "predictions": {
+        "before": {
+          "answer": "They don't know anything about it.",
+          "token_ids": [
+            43,
+            231,
+            79,
+            407,
+            392,
+            2683,
+            1791,
+            3408,
+            1338,
+            514,
+            6134,
+            839,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成他们对此一无所知。"
+        },
+        "small": {
+          "answer": "They were persecuted.",
+          "token_ids": [
+            43,
+            231,
+            79,
+            2192,
+            3542,
+            578,
+            57,
+            676,
+            671,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成受到迫害。"
+        },
+        "wide": {
+          "answer": "Their yesterday's yesterday.",
+          "token_ids": [
+            43,
+            231,
+            659,
+            421,
+            7614,
+            6198,
+            721,
+            421,
+            7614,
+            6198,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只重复昨天，没有到达事件。"
+        },
+        "focused": {
+          "answer": "They were stayed in the yesterday.",
+          "token_ids": [
+            43,
+            231,
+            79,
+            2192,
+            4250,
+            671,
+            608,
+            312,
+            421,
+            7614,
+            6198,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "提到昨天，停留与到达不同。"
+        }
+      }
+    },
+    {
+      "id": "249413-en-zh",
+      "group": "time",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #249413 (CK) & #6482313 (verdastelo9604)",
+      "instruction": "把这句话译成中文。",
+      "input": "We're going to discuss the problem tomorrow.",
+      "output": "我們明天討論這個問題。",
+      "pair": "249413",
+      "primary": true,
+      "criterion": "讨论某事安排在明天。",
+      "predictions": {
+        "before": {
+          "answer": "我們不要討去學校。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            1500,
+            130,
+            91,
+            151,
+            238,
+            215,
+            106,
+            2687,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "没有说明明天讨论问题，新增学校。"
+        },
+        "small": {
+          "answer": "我們明天會在明天来。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            417,
+            347,
+            201,
+            140,
+            261,
+            417,
+            347,
+            203,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "明天保留，活动却变成来。"
+        },
+        "wide": {
+          "answer": "我们明天要問了。",
+          "token_ids": [
+            678,
+            417,
+            347,
+            373,
+            772,
+            152,
+            186,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "明天提问不同于明天讨论问题，讨论对象也消失。"
+        },
+        "focused": {
+          "answer": "我们明天要去野餐。",
+          "token_ids": [
+            678,
+            417,
+            347,
+            3204,
+            1962,
+            7033,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把明天讨论问题改成明天去野餐。"
+        }
+      }
+    },
+    {
+      "id": "249413-zh-en",
+      "group": "time",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #249413 (CK) & #6482313 (verdastelo9604)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我們明天討論這個問題。",
+      "output": "We're going to discuss the problem tomorrow.",
+      "pair": "249413",
+      "primary": true,
+      "criterion": "讨论某事安排在明天。",
+      "predictions": {
+        "before": {
+          "answer": "We've never had this problem before.",
+          "token_ids": [
+            46,
+            59,
+            8,
+            502,
+            3289,
+            2274,
+            961,
+            2225,
+            1636,
+            67,
+            3754,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成从来没有过这个问题。"
+        },
+        "small": {
+          "answer": "We've got plenty of time.",
+          "token_ids": [
+            46,
+            59,
+            8,
+            502,
+            12439,
+            2258,
+            8784,
+            518,
+            2717,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成时间很充裕。"
+        },
+        "wide": {
+          "answer": "We have to be painted this problem.",
+          "token_ids": [
+            46,
+            59,
+            928,
+            448,
+            555,
+            454,
+            12956,
+            961,
+            2225,
+            1636,
+            67,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "有问题一词，未译出明天讨论。"
+        },
+        "focused": {
+          "answer": "We're going to do tomorrow.",
+          "token_ids": [
+            46,
+            59,
+            8,
+            297,
+            1694,
+            514,
+            448,
+            1137,
+            448,
+            6526,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只表达明天要做事，未说明讨论什么。"
+        }
+      }
+    },
+    {
+      "id": "11291130-en-zh",
+      "group": "other",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #11291130 (Aphima) & #5113323 (xjjAstrus)",
+      "instruction": "把这句话译成中文。",
+      "input": "This bicycle is a gift for you.",
+      "output": "送你這輛自行車。",
+      "pair": "11291130",
+      "primary": true,
+      "criterion": "把自行车作为礼物送给对方。",
+      "predictions": {
+        "before": {
+          "answer": "這個人過去。",
+          "token_ids": [
+            295,
+            162,
+            396,
+            148,
+            206,
+            191,
+            151,
+            238,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成人过去，遗漏赠送。"
+        },
+        "small": {
+          "answer": "這個你正在開的車的有机农场。",
+          "token_ids": [
+            295,
+            162,
+            396,
+            148,
+            242,
+            2191,
+            131,
+            159,
+            148,
+            209,
+            130,
+            109,
+            147,
+            209,
+            239,
+            2065,
+            6469,
+            1463,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把自行车与赠送换成开车和农场。"
+        },
+        "wide": {
+          "answer": "這輛自行車是我的。",
+          "token_ids": [
+            295,
+            162,
+            130,
+            110,
+            164,
+            9930,
+            130,
+            109,
+            147,
+            13741,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "认出自行车，把赠给对方改为断言归我。"
+        },
+        "focused": {
+          "answer": "這輛自行車是我的。",
+          "token_ids": [
+            295,
+            162,
+            130,
+            110,
+            164,
+            9930,
+            130,
+            109,
+            147,
+            13741,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "认出自行车，把赠给对方改为断言归我。"
+        }
+      }
+    },
+    {
+      "id": "11291130-zh-en",
+      "group": "other",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #11291130 (Aphima) & #5113323 (xjjAstrus)",
+      "instruction": "Translate this sentence into English.",
+      "input": "送你這輛自行車。",
+      "output": "This bicycle is a gift for you.",
+      "pair": "11291130",
+      "primary": true,
+      "criterion": "把自行车作为礼物送给对方。",
+      "predictions": {
+        "before": {
+          "answer": "There's no milk in the.",
+          "token_ids": [
+            43,
+            231,
+            297,
+            721,
+            1149,
+            286,
+            1381,
+            65,
+            608,
+            312,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成没有牛奶的残句。"
+        },
+        "small": {
+          "answer": "This car he's driving.",
+          "token_ids": [
+            43,
+            62,
+            332,
+            7957,
+            487,
+            721,
+            407,
+            860,
+            3743,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "改成他开的汽车，遗漏赠送。"
+        },
+        "wide": {
+          "answer": "It's bicycle.",
+          "token_ids": [
+            32,
+            74,
+            721,
+            319,
+            1629,
+            79,
+            5753,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "仅辨出自行车，没有赠送和受赠者。"
+        },
+        "focused": {
+          "answer": "The bicycle is bicy.",
+          "token_ids": [
+            43,
+            231,
+            319,
+            1629,
+            79,
+            5753,
+            740,
+            319,
+            1629,
+            79,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "认出自行车但未表达送给对方。"
+        }
+      }
+    },
+    {
+      "id": "434614-en-zh",
+      "group": "other",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #434614 (lukaszpp) & #9583405 (jin1)",
+      "instruction": "把这句话译成中文。",
+      "input": "Do you remember us?",
+      "output": "你还记得我们吗？",
+      "pair": "434614",
+      "primary": true,
+      "criterion": "询问对方是否记得我们。",
+      "predictions": {
+        "before": {
+          "answer": "你經常早餐喝茶嗎？",
+          "token_ids": [
+            242,
+            6466,
+            156,
+            977,
+            605,
+            7033,
+            897,
+            1190,
+            1835,
+            151,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成早餐是否常喝茶。"
+        },
+        "small": {
+          "answer": "你滑冰嗎？",
+          "token_ids": [
+            242,
+            6837,
+            4352,
+            1835,
+            151,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把记得我们改成滑冰。"
+        },
+        "wide": {
+          "answer": "你能帮我吗？",
+          "token_ids": [
+            242,
+            638,
+            3186,
+            218,
+            5936,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把记得我们改成能否帮助我。"
+        },
+        "focused": {
+          "answer": "你記帳嗎？",
+          "token_ids": [
+            242,
+            130,
+            91,
+            161,
+            262,
+            101,
+            1835,
+            151,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "“记账”与“记得我们”含义不同。"
+        }
+      }
+    },
+    {
+      "id": "434614-zh-en",
+      "group": "other",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #434614 (lukaszpp) & #9583405 (jin1)",
+      "instruction": "Translate this sentence into English.",
+      "input": "你还记得我们吗？",
+      "output": "Do you remember us?",
+      "pair": "434614",
+      "primary": true,
+      "criterion": "询问对方是否记得我们。",
+      "predictions": {
+        "before": {
+          "answer": "Why did you have tea?",
+          "token_ids": [
+            46,
+            2041,
+            2292,
+            451,
+            928,
+            210,
+            1138,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成问为什么喝茶。"
+        },
+        "small": {
+          "answer": "What time do you go home?",
+          "token_ids": [
+            46,
+            466,
+            2717,
+            1137,
+            451,
+            1694,
+            5155,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "询问回家时间，没有关于记得我们的提问。"
+        },
+        "wide": {
+          "answer": "You're invive don't you?",
+          "token_ids": [
+            48,
+            270,
+            8,
+            297,
+            608,
+            76,
+            1676,
+            407,
+            392,
+            2683,
+            451,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "问句残缺，未表达记得我们。"
+        },
+        "focused": {
+          "answer": "Do you remembering us?",
+          "token_ids": [
+            27,
+            69,
+            451,
+            9266,
+            514,
+            1902,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": true,
+          "detail": true,
+          "reason": "remembering 应改为 remember，但问谁是否记得我们仍清楚，按语义通过。"
+        }
+      }
+    },
+    {
+      "id": "5756645-en-zh",
+      "group": "other",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #5756645 (CM) & #13670883 (LeviHighway)",
+      "instruction": "把这句话译成中文。",
+      "input": "Bring me a fork, Tom.",
+      "output": "給我拿把叉子，湯姆。",
+      "pair": "5756645",
+      "primary": true,
+      "criterion": "要求取来叉子。收件人和称呼另计入整句。",
+      "predictions": {
+        "before": {
+          "answer": "給我一桶水。",
+          "token_ids": [
+            5845,
+            89,
+            3116,
+            4226,
+            556,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "请求形式正确，把叉子换成一桶水。"
+        },
+        "small": {
+          "answer": "請給湯姆。",
+          "token_ids": [
+            130,
+            94,
+            148,
+            5845,
+            89,
+            1134,
+            97,
+            313,
+            143,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "让人给汤姆，而非叫汤姆拿叉子给我。"
+        },
+        "wide": {
+          "answer": "給湯姆，湯姆。",
+          "token_ids": [
+            5845,
+            89,
+            1134,
+            97,
+            313,
+            143,
+            173,
+            1134,
+            97,
+            313,
+            143,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把接收者换成汤姆，也没有叉子。"
+        },
+        "focused": {
+          "answer": "给汤姆，湯姆。",
+          "token_ids": [
+            1004,
+            1937,
+            313,
+            143,
+            173,
+            1134,
+            97,
+            313,
+            143,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "重复汤姆，叉子没有译出。"
+        }
+      }
+    },
+    {
+      "id": "5756645-zh-en",
+      "group": "other",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #5756645 (CM) & #13670883 (LeviHighway)",
+      "instruction": "Translate this sentence into English.",
+      "input": "給我拿把叉子，湯姆。",
+      "output": "Bring me a fork, Tom.",
+      "pair": "5756645",
+      "primary": true,
+      "criterion": "要求取来叉子。收件人和称呼另计入整句。",
+      "predictions": {
+        "before": {
+          "answer": "I bought a Tom, but I lost it.",
+          "token_ids": [
+            32,
+            319,
+            4551,
+            259,
+            455,
+            522,
+            12,
+            1170,
+            369,
+            8670,
+            839,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "编造购买和丢失汤姆的情节。"
+        },
+        "small": {
+          "answer": "I have a lot of Tom.",
+          "token_ids": [
+            32,
+            928,
+            259,
+            420,
+            503,
+            518,
+            455,
+            522,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "陈述我有很多汤姆，没有请求取叉子。"
+        },
+        "wide": {
+          "answer": "I got to tell Tom, but I've ever seen you.",
+          "token_ids": [
+            32,
+            12439,
+            448,
+            2873,
+            455,
+            522,
+            12,
+            1170,
+            369,
+            8,
+            502,
+            4100,
+            8327,
+            451,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成告诉汤姆和见到某人。"
+        },
+        "focused": {
+          "answer": "Give me, Tom turned up, I am all the ticket.",
+          "token_ids": [
+            30,
+            1676,
+            698,
+            12,
+            455,
+            522,
+            6350,
+            671,
+            1499,
+            12,
+            369,
+            1616,
+            1225,
+            312,
+            210,
+            2521,
+            664,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "有 give me 和汤姆，仍未说明要叉子，且新增无关信息。"
+        }
+      }
+    },
+    {
+      "id": "239100-en-zh",
+      "group": "other",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #239100 (CK) & #874518 (Martha)",
+      "instruction": "把这句话译成中文。",
+      "input": "The dog walked across the street.",
+      "output": "這隻狗穿過街道。",
+      "pair": "239100",
+      "primary": true,
+      "criterion": "狗穿过街道。英语原句说步行，中文原句未明确具体步态。",
+      "predictions": {
+        "before": {
+          "answer": "這個男孩跳入了水中。",
+          "token_ids": [
+            295,
+            162,
+            396,
+            148,
+            2001,
+            1646,
+            1324,
+            12427,
+            8636,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成男孩跳入水中。"
+        },
+        "small": {
+          "answer": "狗喂狗喂狗。",
+          "token_ids": [
+            3713,
+            9166,
+            3713,
+            9166,
+            3713,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只重复狗和喂，遗漏过街。"
+        },
+        "wide": {
+          "answer": "這個老人拄著這個走。",
+          "token_ids": [
+            295,
+            162,
+            396,
+            148,
+            8155,
+            9923,
+            1233,
+            295,
+            162,
+            396,
+            148,
+            449,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "狗变成老人，也没有过街。"
+        },
+        "focused": {
+          "answer": "狗喂狗喂狗了下来。",
+          "token_ids": [
+            3713,
+            9166,
+            3713,
+            9166,
+            3713,
+            186,
+            1753,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "有狗，但走过街道变成喂狗的重复片段。"
+        }
+      }
+    },
+    {
+      "id": "239100-zh-en",
+      "group": "other",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #239100 (CK) & #874518 (Martha)",
+      "instruction": "Translate this sentence into English.",
+      "input": "這隻狗穿過街道。",
+      "output": "The dog walked across the street.",
+      "pair": "239100",
+      "primary": true,
+      "criterion": "狗穿过街道。英语原句说步行，中文原句未明确具体步态。",
+      "predictions": {
+        "before": {
+          "answer": "There's no water in the well.",
+          "token_ids": [
+            43,
+            231,
+            297,
+            721,
+            1149,
+            12327,
+            608,
+            312,
+            2079,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成井里没有水。"
+        },
+        "small": {
+          "answer": "This watch is the dog.",
+          "token_ids": [
+            43,
+            62,
+            332,
+            10492,
+            740,
+            312,
+            15810,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把手表和狗混为一谈。"
+        },
+        "wide": {
+          "answer": "The dog is a doger crank.",
+          "token_ids": [
+            43,
+            231,
+            15810,
+            740,
+            259,
+            15810,
+            375,
+            410,
+            4057,
+            65,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只有狗相关的残句，没有过街。"
+        },
+        "focused": {
+          "answer": "The dog is closely across the dog.",
+          "token_ids": [
+            43,
+            231,
+            15810,
+            740,
+            11057,
+            941,
+            11315,
+            8792,
+            312,
+            15810,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "有 dog 和 across，街道却换成另一只狗，没有表达穿过街道。"
+        }
+      }
+    },
+    {
+      "id": "2649011-en-zh",
+      "group": "other",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #2649011 (CK) & #8877876 (crescat)",
+      "instruction": "把这句话译成中文。",
+      "input": "Is Tom an actor?",
+      "output": "汤姆是演员吗？",
+      "pair": "2649011",
+      "primary": true,
+      "criterion": "询问汤姆是否为演员。",
+      "predictions": {
+        "before": {
+          "answer": "我喝湯姆嗎？",
+          "token_ids": [
+            218,
+            897,
+            1134,
+            97,
+            313,
+            143,
+            1835,
+            151,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "谈喝汤姆，遗漏演员身份。"
+        },
+        "small": {
+          "answer": "我為得多久？",
+          "token_ids": [
+            218,
+            582,
+            108,
+            256,
+            515,
+            1274,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "改成第一人称及询问时长。"
+        },
+        "wide": {
+          "answer": "湯姆嗎？",
+          "token_ids": [
+            1134,
+            97,
+            313,
+            143,
+            1835,
+            151,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只问“汤姆吗”，没有说演员。"
+        },
+        "focused": {
+          "answer": "汤姆是个常吗？",
+          "token_ids": [
+            1937,
+            313,
+            143,
+            1131,
+            977,
+            5936,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "保留汤姆和问句，但“常”没有表达演员。"
+        }
+      }
+    },
+    {
+      "id": "2649011-zh-en",
+      "group": "other",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #2649011 (CK) & #8877876 (crescat)",
+      "instruction": "Translate this sentence into English.",
+      "input": "汤姆是演员吗？",
+      "output": "Is Tom an actor?",
+      "pair": "2649011",
+      "primary": true,
+      "criterion": "询问汤姆是否为演员。",
+      "predictions": {
+        "before": {
+          "answer": "Tom is a teacher?",
+          "token_ids": [
+            43,
+            522,
+            740,
+            259,
+            210,
+            1138,
+            8590,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "人物和问句保留，演员变成教师。"
+        },
+        "small": {
+          "answer": "Who is the play begin?",
+          "token_ids": [
+            46,
+            1417,
+            740,
+            312,
+            6653,
+            11775,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成含 play 的不完整问句，未问汤姆是否为演员。"
+        },
+        "wide": {
+          "answer": "Is Tom a few shoes?",
+          "token_ids": [
+            32,
+            73,
+            455,
+            522,
+            259,
+            366,
+            4915,
+            15036,
+            422,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "把演员改成鞋子。"
+        },
+        "focused": {
+          "answer": "Is Tom a listen to?",
+          "token_ids": [
+            32,
+            73,
+            455,
+            522,
+            259,
+            15094,
+            425,
+            448,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只有汤姆和问句框架，没有演员。"
+        }
+      }
+    },
+    {
+      "id": "1636184-en-zh",
+      "group": "other",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #1636184 (ari_diary) & #13167227 (LeviHighway)",
+      "instruction": "把这句话译成中文。",
+      "input": "Who stole the apples?",
+      "output": "誰偷了這些蘋果？",
+      "pair": "1636184",
+      "primary": false,
+      "criterion": "针对偷苹果者的身份发问。",
+      "predictions": {
+        "before": {
+          "answer": "這個池塘裡的水吗？",
+          "token_ids": [
+            295,
+            162,
+            396,
+            148,
+            2045,
+            10806,
+            838,
+            84,
+            209,
+            556,
+            5936,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成询问池塘的水。"
+        },
+        "small": {
+          "answer": "蘋果汁了吗？",
+          "token_ids": [
+            5245,
+            148,
+            786,
+            11323,
+            186,
+            5936,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "问到苹果汁，偷窃和谁都丢失。"
+        },
+        "wide": {
+          "answer": "這些蘋果？",
+          "token_ids": [
+            295,
+            162,
+            483,
+            5245,
+            148,
+            786,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只有“这些苹果”，没问谁偷的。"
+        },
+        "focused": {
+          "answer": "谁来了蘋果？",
+          "token_ids": [
+            845,
+            1009,
+            5245,
+            148,
+            786,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "有谁和苹果，把偷换成来，不能表达偷苹果。"
+        }
+      }
+    },
+    {
+      "id": "1636184-zh-en",
+      "group": "other",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #1636184 (ari_diary) & #13167227 (LeviHighway)",
+      "instruction": "Translate this sentence into English.",
+      "input": "誰偷了這些蘋果？",
+      "output": "Who stole the apples?",
+      "pair": "1636184",
+      "primary": false,
+      "criterion": "针对偷苹果者的身份发问。",
+      "predictions": {
+        "before": {
+          "answer": "Would you like some more expensive than milk?",
+          "token_ids": [
+            46,
+            1057,
+            451,
+            2214,
+            2573,
+            1698,
+            12020,
+            5908,
+            1676,
+            1877,
+            286,
+            1381,
+            65,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成有关牛奶价格的问句。"
+        },
+        "small": {
+          "answer": "How much is your new?",
+          "token_ids": [
+            31,
+            513,
+            3127,
+            740,
+            843,
+            3312,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "改成询问价格。"
+        },
+        "wide": {
+          "answer": "Who was the apple?",
+          "token_ids": [
+            46,
+            1417,
+            1715,
+            312,
+            3860,
+            627,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "问谁是苹果，关系错误。"
+        },
+        "focused": {
+          "answer": "Who does this apple?",
+          "token_ids": [
+            46,
+            1417,
+            8437,
+            961,
+            3860,
+            627,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "保留谁和苹果，未表达偷这一动作。"
+        }
+      }
+    },
+    {
+      "id": "261486-en-zh",
+      "group": "quantity",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #261486 (CK) & #793325 (Martha)",
+      "instruction": "把这句话译成中文。",
+      "input": "I've climbed Mt. Fuji twice.",
+      "output": "我爬過兩次富士山。",
+      "pair": "261486",
+      "primary": true,
+      "criterion": "登富士山的经历为两次。",
+      "predictions": {
+        "before": {
+          "answer": "我对外籍员工作。",
+          "token_ids": [
+            218,
+            830,
+            573,
+            5426,
+            1120,
+            2572,
+            612,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成有关外籍员工的陈述。"
+        },
+        "small": {
+          "answer": "我們有很容易治。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            239,
+            2786,
+            3546,
+            1790,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "译文不成句，没有表达两次登山。"
+        },
+        "wide": {
+          "answer": "我們一點言會成總賴。",
+          "token_ids": [
+            218,
+            396,
+            154,
+            198,
+            482,
+            167,
+            485,
+            201,
+            140,
+            713,
+            8593,
+            111,
+            130,
+            101,
+            102,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "人称变化，也没有富士山或次数。"
+        },
+        "focused": {
+          "answer": "我很過去過人。",
+          "token_ids": [
+            218,
+            2786,
+            191,
+            151,
+            238,
+            191,
+            151,
+            206,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "残句没有具体登山经历或两次。"
+        }
+      }
+    },
+    {
+      "id": "261486-zh-en",
+      "group": "quantity",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #261486 (CK) & #793325 (Martha)",
+      "instruction": "Translate this sentence into English.",
+      "input": "我爬過兩次富士山。",
+      "output": "I've climbed Mt. Fuji twice.",
+      "pair": "261486",
+      "primary": true,
+      "criterion": "登富士山的经历为两次。",
+      "predictions": {
+        "before": {
+          "answer": "I'm not to talk to the other day.",
+          "token_ids": [
+            32,
+            8,
+            67,
+            717,
+            448,
+            6406,
+            448,
+            312,
+            3655,
+            2840,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成说话和日期，没有登山次数。"
+        },
+        "small": {
+          "answer": "I went to the school in Boston.",
+          "token_ids": [
+            32,
+            291,
+            841,
+            448,
+            312,
+            274,
+            728,
+            4708,
+            608,
+            695,
+            1785,
+            392,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成去波士顿的学校。"
+        },
+        "wide": {
+          "answer": "I spent all the first time to the bus.",
+          "token_ids": [
+            32,
+            1294,
+            841,
+            1225,
+            312,
+            4960,
+            2717,
+            448,
+            312,
+            6090,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "first time 也没有表达登富士山两次。"
+        },
+        "focused": {
+          "answer": "I was in Boston last year.",
+          "token_ids": [
+            32,
+            1715,
+            608,
+            695,
+            1785,
+            392,
+            5907,
+            15095,
+            14,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成去年在波士顿。"
+        }
+      }
+    },
+    {
+      "id": "58208-en-zh",
+      "group": "other",
+      "direction": "en-zh",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #58208 (CK) & #866146 (Martha)",
+      "instruction": "把这句话译成中文。",
+      "input": "Can you save this seat for me?",
+      "output": "你可以幫我保留這個座位嗎?",
+      "pair": "58208",
+      "primary": true,
+      "criterion": "请求对方为说话者保留座位。",
+      "predictions": {
+        "before": {
+          "answer": "你可以给我一起喝。",
+          "token_ids": [
+            242,
+            2151,
+            1004,
+            3116,
+            372,
+            897,
+            176,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "换成一起喝，遗漏保留座位。"
+        },
+        "small": {
+          "answer": "你能帮我把这译要嗎？",
+          "token_ids": [
+            242,
+            638,
+            3186,
+            218,
+            3183,
+            199,
+            154,
+            373,
+            1835,
+            151,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只留下求助形式，未译出留座。"
+        },
+        "wide": {
+          "answer": "你能給我的嗎？",
+          "token_ids": [
+            242,
+            638,
+            5845,
+            89,
+            1291,
+            1835,
+            151,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "变成询问能否给东西，缺少座位和保留动作。"
+        },
+        "focused": {
+          "answer": "你能帮我吗？",
+          "token_ids": [
+            242,
+            638,
+            3186,
+            218,
+            5936,
+            272,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "只问能否帮忙，没有说明帮忙留座。"
+        }
+      }
+    },
+    {
+      "id": "58208-zh-en",
+      "group": "other",
+      "direction": "zh-en",
+      "credit": "CC-BY 2.0 (France) Attribution: tatoeba.org #58208 (CK) & #866146 (Martha)",
+      "instruction": "Translate this sentence into English.",
+      "input": "你可以幫我保留這個座位嗎?",
+      "output": "Can you save this seat for me?",
+      "pair": "58208",
+      "primary": true,
+      "criterion": "请求对方为说话者保留座位。",
+      "predictions": {
+        "before": {
+          "answer": "Do you want to me a me?",
+          "token_ids": [
+            27,
+            69,
+            451,
+            6966,
+            448,
+            698,
+            259,
+            698,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "问句残缺，看不出请求留座。"
+        },
+        "small": {
+          "answer": "Can I can go to the sch?",
+          "token_ids": [
+            26,
+            519,
+            369,
+            1793,
+            1694,
+            448,
+            312,
+            274,
+            728,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "改成问自己能否出行。"
+        },
+        "wide": {
+          "answer": "Would you save this dress for me?",
+          "token_ids": [
+            46,
+            1057,
+            451,
+            8345,
+            961,
+            407,
+            4020,
+            757,
+            698,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "请求帮我保留的结构正确，但座位变成衣服。"
+        },
+        "focused": {
+          "answer": "Can I help you?",
+          "token_ids": [
+            26,
+            519,
+            369,
+            6019,
+            451,
+            23,
+            2
+          ],
+          "stop": "eos",
+          "exact": false,
+          "meaning": false,
+          "detail": false,
+          "reason": "帮忙的方向反了，也没提座位。"
+        }
+      }
+    }
+  ]
+}

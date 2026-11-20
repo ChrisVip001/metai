@@ -1,196 +1,13 @@
+//! Training and checkpoint exchange. All stages exchange the same self-contained model directory.
+use anyhow::{ensure, Context, Result};
 use burn::module::Module;
-use burn::nn::loss::CrossEntropyLossConfig;
-use burn::optim::AdamWConfig;
-use burn::tensor::backend::{AutodiffBackend, Backend};
-use burn::tensor::{ElementConversion, Tensor};
+use burn::optim::{AdamWConfig, GradientsParams};
+use burn::tensor::{activation::log_softmax, Device, Int, Tensor};
+use std::{fs, path::Path};
 
-use crate::data::data::TextBatch;
-use crate::model::{MetaIConfig, MetaIModel};
+use crate::{MetaIConfig, MetaIModel, MetaITokenizer};
 
-use burn::train::metric::LossInput;
-use burn::train::{TrainOutput, TrainStep, ValidStep};
-
-#[derive(Clone, Debug)]
-pub struct MetaITrainingConfig {
-    pub model: MetaIConfig,
-    pub optimizer: AdamWConfig,
-    pub batch_size: usize,
-    pub num_epochs: usize,
-    pub learning_rate: f64,
-    pub seed: u64,
-    pub chinese_path: String,
-    pub english_path: String,
-    pub tokenizer_path: String,
-    pub grads_accumulation: usize,
-}
-
-impl MetaITrainingConfig {
-    pub fn new(model_config: MetaIConfig) -> Self {
-        Self {
-            model: model_config,
-            optimizer: AdamWConfig::new(),
-            batch_size: 32,
-            num_epochs: 10,
-            learning_rate: 1e-4,
-            seed: 42,
-            chinese_path: "4in1.txt".to_string(),
-            english_path: "dataset.txt".to_string(),
-            tokenizer_path: "tokenizer.json".to_string(),
-            grads_accumulation: 1,
-        }
-    }
-}
-
-// 适配 Burn 0.19.1 的输出结构
-#[derive(Clone)]
-pub struct MetaIOutput<B: Backend> {
-    pub loss: Tensor<B, 1>,
-}
-
-#[derive(Clone, Debug)]
-pub struct MetaIOutputSync {
-    pub loss: f32,
-}
-
-impl<B: Backend> burn::train::metric::ItemLazy for MetaIOutput<B> {
-    type ItemSync = MetaIOutputSync;
-
-    fn sync(self) -> Self::ItemSync {
-        MetaIOutputSync {
-            loss: self.loss.into_scalar().elem::<f32>(),
-        }
-    }
-}
-
-impl burn::train::metric::ItemLazy for MetaIOutputSync {
-    type ItemSync = Self;
-
-    fn sync(self) -> Self::ItemSync {
-        self
-    }
-}
-
-// 适配 LossMetric
-impl<B: Backend> burn::train::metric::Adaptor<LossInput<B>> for MetaIOutput<B> {
-    fn adapt(&self) -> LossInput<B> {
-        LossInput::new(self.loss.clone())
-    }
-}
-
-impl<B: Backend> burn::train::metric::Adaptor<LossInput<B>> for MetaIOutputSync {
-    fn adapt(&self) -> LossInput<B> {
-        // 对于已同步的项，我们需要在一个（通常是 NdArray 或 CPU）后端重新构建它以满足 Adaptor 接口
-        // 但通常 Metric 会在不同的阶段调用不同的 Adaptor
-        LossInput::new(Tensor::from_floats([self.loss], &Default::default()))
-    }
-}
-
-// 在 Burn 0.19.1 中实现 TrainStep
-impl<B: AutodiffBackend> TrainStep<TextBatch<B>, MetaIOutput<B>> for MetaIModel<B> {
-    fn step(&self, batch: TextBatch<B>) -> TrainOutput<MetaIOutput<B>> {
-        let logits = self.forward(batch.inputs, None, None);
-        let [batch_size, seq_len, vocab_size] = logits.dims();
-
-        let logits_flat = logits.reshape([batch_size * seq_len, vocab_size]);
-        let targets_flat = batch.targets.reshape([batch_size * seq_len]);
-
-        let loss = CrossEntropyLossConfig::new()
-            .with_pad_tokens(Some(vec![self.pad_id as usize]))
-            .init(&logits_flat.device())
-            .forward(logits_flat, targets_flat);
-
-        // [DIAG-TEMP] 诊断打印：每步 loss 与 embedding 权重状态
-        let diag = std::env::var("METAI_DIAG").is_ok();
-        if diag {
-            let lv: f32 = loss.clone().into_scalar().elem::<f32>();
-            let emb = self.embedding.weight.val().clone();
-            let e_min: f32 = emb.clone().min().into_scalar().elem::<f32>();
-            let e_max: f32 = emb.clone().max().into_scalar().elem::<f32>();
-            let e_nan: f32 = emb.clone().is_nan().float().mean().into_scalar().elem::<f32>();
-            let out = self.output.weight.val().clone();
-            let o_min: f32 = out.clone().min().into_scalar().elem::<f32>();
-            let o_max: f32 = out.clone().max().into_scalar().elem::<f32>();
-            println!(
-                "[DIAG] step loss={:.4} emb[min={:.4},max={:.4},nan_ratio={:.6}] out[min={:.4},max={:.4}]",
-                lv, e_min, e_max, e_nan, o_min, o_max
-            );
-        }
-
-        let grads = loss.backward();
-
-        TrainOutput::new(self, grads, MetaIOutput { loss })
-    }
-}
-
-impl<B: Backend> ValidStep<TextBatch<B>, MetaIOutput<B>> for MetaIModel<B> {
-    fn step(&self, batch: TextBatch<B>) -> MetaIOutput<B> {
-        let logits = self.forward(batch.inputs, None, None);
-        let [batch_size, seq_len, vocab_size] = logits.dims();
-
-        let logits_flat = logits.reshape([batch_size * seq_len, vocab_size]);
-        let targets_flat = batch.targets.reshape([batch_size * seq_len]);
-
-        let loss = CrossEntropyLossConfig::new()
-            .with_pad_tokens(Some(vec![self.pad_id as usize]))
-            .init(&logits_flat.device())
-            .forward(logits_flat, targets_flat);
-
-        MetaIOutput { loss }
-    }
-}
-
-use crate::data::sft::SFTBatch;
-
-// SFT 训练步
-impl<B: AutodiffBackend> TrainStep<SFTBatch<B>, MetaIOutput<B>> for MetaIModel<B> {
-    fn step(&self, batch: SFTBatch<B>) -> TrainOutput<MetaIOutput<B>> {
-        let logits = self.forward(batch.inputs, None, None);
-        let [batch_size, seq_len, vocab_size] = logits.dims();
-
-        let logits_flat = logits.reshape([batch_size * seq_len, vocab_size]);
-        let mut targets_flat = batch.targets.reshape([batch_size * seq_len]);
-        let mask_flat = batch.mask.reshape([batch_size * seq_len]);
-
-        // 应用 Mask: 将 mask=0 的位置的 target 设为 pad_id
-        // 这样 CrossEntropyLoss (配置了 ignore pad_id) 就会忽略这些位置
-        // mask 是 Int, 需转为 Bool, mask=0 => bool=true (需要被覆盖)，反之 false
-        // Wait: mask=1 is valid, mask=0 is ignore.
-        // So we want to fill where mask == 0.
-        let mask_bool = mask_flat.equal_elem(0);
-        targets_flat = targets_flat.mask_fill(mask_bool, self.pad_id as i32);
-
-        let loss = CrossEntropyLossConfig::new()
-            .with_pad_tokens(Some(vec![self.pad_id as usize]))
-            .init(&logits_flat.device())
-            .forward(logits_flat, targets_flat);
-
-        let grads = loss.backward();
-
-        TrainOutput::new(self, grads, MetaIOutput { loss })
-    }
-}
-
-impl<B: Backend> ValidStep<SFTBatch<B>, MetaIOutput<B>> for MetaIModel<B> {
-    fn step(&self, batch: SFTBatch<B>) -> MetaIOutput<B> {
-        let logits = self.forward(batch.inputs, None, None);
-        let [batch_size, seq_len, vocab_size] = logits.dims();
-
-        let logits_flat = logits.reshape([batch_size * seq_len, vocab_size]);
-        let mut targets_flat = batch.targets.reshape([batch_size * seq_len]);
-        let mask_flat = batch.mask.reshape([batch_size * seq_len]);
-
-        let mask_bool = mask_flat.equal_elem(0);
-        targets_flat = targets_flat.mask_fill(mask_bool, self.pad_id as i32);
-
-        let loss = CrossEntropyLossConfig::new()
-            .with_pad_tokens(Some(vec![self.pad_id as usize]))
-            .init(&logits_flat.device())
-            .forward(logits_flat, targets_flat);
-
-        MetaIOutput { loss }
-    }
-}
-
+pub mod adaptation;
 pub mod distributed;
 pub mod dpo;
 pub mod grpo;
@@ -198,70 +15,176 @@ pub mod grpo_rollout;
 pub mod grpo_train_step;
 pub mod reward;
 pub mod sft;
+pub mod thinking;
+#[allow(clippy::module_inception)] // Preserve the existing public module path.
 pub mod train;
 
-// --- Shared Utilities ---
+pub struct Checkpoint {
+    pub config: MetaIConfig,
+    pub model: MetaIModel,
+    pub tokenizer: MetaITokenizer,
+}
 
-pub fn find_latest_epoch(artifact_dir: &str) -> Option<usize> {
-    let checkpoint_dir = std::path::Path::new(artifact_dir).join("checkpoint");
-    if !checkpoint_dir.exists() {
-        return None;
+impl Checkpoint {
+    pub fn load(dir: &Path, device: &Device) -> Result<Self> {
+        let config: MetaIConfig = serde_json::from_reader(
+            fs::File::open(dir.join("config.json")).with_context(|| {
+                format!(
+                    "Missing config.json in {} (expected a Burn 0.22 checkpoint)",
+                    dir.display()
+                )
+            })?,
+        )?;
+        config.validate()?;
+        let tokenizer = MetaITokenizer::new(dir.join("tokenizer.json"))?;
+        ensure!(
+            tokenizer.vocab_size() <= config.vocab_size,
+            "tokenizer exceeds model vocabulary"
+        );
+        let model = MetaIModel::new(
+            &config,
+            tokenizer.pad_id().context("missing pad token")?,
+            device,
+        )
+        .try_load_file(dir.join("model.bpk"))?;
+        Ok(Self {
+            model,
+            config,
+            tokenizer,
+        })
     }
 
-    let mut max_epoch = 0;
-    if let Ok(entries) = std::fs::read_dir(checkpoint_dir) {
-        for entry in entries.flatten() {
-            if let Some(file_name) = entry.file_name().to_str() {
-                // 模型保存格式通常为 model-X.bin
-                if file_name.starts_with("model-") && file_name.ends_with(".bin") {
-                    if let Some(epoch_str) = file_name
-                        .strip_prefix("model-")
-                        .and_then(|s| s.strip_suffix(".bin"))
-                    {
-                        if let Ok(epoch) = epoch_str.parse::<usize>() {
-                            if epoch > max_epoch {
-                                max_epoch = epoch;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    pub fn save(&self, dir: &Path) -> Result<()> {
+        self.save_with(dir, |_| Ok(()))
     }
 
-    if max_epoch > 0 {
-        Some(max_epoch)
-    } else {
-        None
+    pub fn save_with(&self, dir: &Path, extra: impl FnOnce(&Path) -> Result<()>) -> Result<()> {
+        // Publish the directory only after all three files exist.
+        let parent = dir
+            .parent()
+            .filter(|p| !p.as_os_str().is_empty())
+            .unwrap_or(Path::new("."));
+        fs::create_dir_all(parent)?;
+        let staging = tempfile::Builder::new()
+            .prefix(".metai-")
+            .tempdir_in(parent)?;
+        self.model
+            .clone()
+            .save_file(staging.path().join("model.bpk"))?;
+        fs::write(
+            staging.path().join("config.json"),
+            serde_json::to_vec_pretty(&self.config)?,
+        )?;
+        self.tokenizer.save(staging.path().join("tokenizer.json"))?;
+        extra(staging.path())?;
+        ensure!(!dir.exists(), "output already exists: {}", dir.display());
+        fs::rename(staging.path(), dir)?;
+        Ok(())
     }
 }
 
-pub fn load_model_checkpoint<B: Backend>(
-    model: MetaIModel<B>,
-    model_dir: &str,
-    device: &B::Device,
-) -> MetaIModel<B> {
-    use burn::record::{BinFileRecorder, FullPrecisionSettings};
-    let recorder = BinFileRecorder::<FullPrecisionSettings>::default();
+pub fn token_logps(logits: Tensor<3>, targets: Tensor<2, Int>) -> Tensor<2> {
+    let [b, s] = targets.dims();
+    log_softmax(logits, 2)
+        .gather(2, targets.reshape([b, s, 1]))
+        .reshape([b, s])
+}
 
-    if let Some(epoch) = find_latest_epoch(model_dir) {
-        println!("Loading model checkpoint from epoch {}", epoch);
-        let model_path = std::path::Path::new(model_dir)
-            .join("checkpoint")
-            .join(format!("model-{}.bin", epoch));
+pub fn masked_nll(logits: Tensor<3>, targets: Tensor<2, Int>, mask: Tensor<2, Int>) -> Tensor<1> {
+    let weights = mask.float();
+    -(token_logps(logits, targets) * weights.clone()).sum() / weights.sum()
+}
 
-        match model.load_file(model_path, &recorder, device) {
-            Ok(m) => m,
-            Err(e) => {
-                println!("Failed to load checkpoint: {}. Starting from scratch.", e);
-                panic!("Failed to load checkpoint");
+#[derive(Clone, Debug, clap::Args, serde::Serialize, serde::Deserialize)]
+pub struct Schedule {
+    #[arg(long, default_value_t = 1)]
+    pub num_epochs: usize,
+    #[arg(long, default_value_t = 4)]
+    pub batch_size: usize,
+    #[arg(long, default_value_t = 0.001)]
+    pub learning_rate: f64,
+    #[arg(long, default_value_t = 42)]
+    pub seed: u64,
+}
+
+impl Schedule {
+    pub fn validate(&self) -> Result<()> {
+        ensure!(
+            self.num_epochs > 0
+                && self.batch_size > 0
+                && self.learning_rate.is_finite()
+                && self.learning_rate > 0.0,
+            "epochs, batch size and learning rate must be positive"
+        );
+        Ok(())
+    }
+
+    /// A batch closure owns the task-specific data and loss. Only the policy enters AdamW.
+    pub fn fit<M: Module>(
+        &self,
+        mut model: M,
+        n: usize,
+        mut loss_for: impl FnMut(&M, &[usize]) -> Result<Tensor<1>>,
+    ) -> Result<M> {
+        self.validate()?;
+        let mut optimizer = AdamWConfig::new().init();
+        for epoch in 1..=self.num_epochs {
+            model = self.epoch(model, n, epoch, &mut optimizer, &mut loss_for)?;
+        }
+        Ok(model)
+    }
+
+    fn epoch<M: Module>(
+        &self,
+        mut model: M,
+        n: usize,
+        epoch: usize,
+        optimizer: &mut burn::optim::ModuleOptimizer,
+        mut loss_for: impl FnMut(&M, &[usize]) -> Result<Tensor<1>>,
+    ) -> Result<M> {
+        use rand::{rngs::StdRng, seq::SliceRandom, SeedableRng};
+        ensure!(
+            n > 0,
+            "no trainable examples after tokenization and truncation"
+        );
+        let mut order: Vec<_> = (0..n).collect();
+        order.shuffle(&mut StdRng::seed_from_u64(
+            self.seed.wrapping_add((epoch - 1) as u64),
+        ));
+        let mut total = 0.;
+        let log_interval = std::env::var("METAI_LOG_EVERY")
+            .ok()
+            .and_then(|s| s.parse::<usize>().ok())
+            .filter(|&n| n > 0);
+        for (index, batch) in order.chunks(self.batch_size).enumerate() {
+            let loss = loss_for(&model, batch)?;
+            let value = loss.clone().into_scalar::<f32>();
+            ensure!(value.is_finite(), "nonfinite loss in epoch {epoch}");
+            total += value as f64 * batch.len() as f64;
+            let grads = GradientsParams::from_grads(loss.backward(), &model);
+            model = optimizer.step(self.learning_rate, model, grads);
+            if log_interval.is_some_and(|every| (index + 1).is_multiple_of(every)) {
+                eprintln!(
+                    "epoch={epoch} step={}/{} batch_nll={value:.6}",
+                    index + 1,
+                    n.div_ceil(self.batch_size)
+                );
             }
         }
-    } else {
         println!(
-            "No checkpoint found at {}, utilizing initial weights.",
-            model_dir
+            "epoch={epoch} examples={n} mean_batch_loss={:.6}",
+            total / n as f64
         );
-        model
+        Ok(model)
     }
+}
+
+pub fn rows<I: Clone + Send + Sync>(
+    data: &impl burn::data::dataset::Dataset<I>,
+    indices: &[usize],
+) -> Vec<I> {
+    indices
+        .iter()
+        .map(|&i| data.get(i).expect("indices drawn from dataset length"))
+        .collect()
 }

@@ -1,0 +1,249 @@
+{"id": "1954967-en-zh", "answer": "我們不論這裡。", "meaning": false, "detail": false, "reason": "有地点和否定，“不论这里”没有表达此处不能交谈。"}
+{"id": "1954967-en-zh", "answer": "我們有說話。", "meaning": false, "detail": false, "reason": "变成已经说过话，地点与限制都消失。"}
+{"id": "1954967-en-zh", "answer": "我们不能跟你说！", "meaning": false, "detail": false, "reason": "保留不能说，把地点限制改成了不能跟你说。"}
+{"id": "1954967-en-zh", "answer": "我们提供。", "meaning": false, "detail": false, "reason": "换成了提供东西。"}
+{"id": "1954967-zh-en", "answer": "We can't stay here till he comes.", "meaning": false, "detail": false, "reason": "不能交谈变成不能在此等他来。"}
+{"id": "1954967-zh-en", "answer": "We don't want anything.", "meaning": false, "detail": false, "reason": "换成不想要东西。"}
+{"id": "1954967-zh-en", "answer": "We can't talk about it.", "meaning": false, "detail": false, "reason": "把不能在这里谈改成不能谈此事，限制的范围不同。"}
+{"id": "1954967-zh-en", "answer": "We want to see it.", "meaning": false, "detail": false, "reason": "变成想看看它。"}
+{"id": "550246-en-zh", "answer": "我走不了。", "meaning": false, "detail": false, "reason": "把想不起来译成走不了。"}
+{"id": "550246-en-zh", "answer": "我無法去。", "meaning": false, "detail": false, "reason": "无法做的事情被换成前往某处。"}
+{"id": "550246-en-zh", "answer": "我可以獨自做。", "meaning": false, "detail": false, "reason": "换成可以独自做某事，动作和肯否均错。"}
+{"id": "550246-en-zh", "answer": "我不記得記得記得。", "meaning": true, "detail": true, "reason": "“我不记得”传达无法回想，没有新增事实，但“记得”异常重复，流畅度差。"}
+{"id": "550246-zh-en", "answer": "I would like to come.", "meaning": false, "detail": false, "reason": "把想不起来译成愿意来。"}
+{"id": "550246-zh-en", "answer": "I can't remember to come.", "meaning": false, "detail": false, "reason": "remember to come 指记得要来，给回忆改加了一个未来任务。"}
+{"id": "550246-zh-en", "answer": "I want to be a doctor.", "meaning": false, "detail": false, "reason": "换成想当医生。"}
+{"id": "550246-zh-en", "answer": "I want to stay.", "meaning": false, "detail": false, "reason": "换成希望留下。"}
+{"id": "1249224-en-zh", "answer": "我不能破例。", "meaning": false, "detail": false, "reason": "不能收礼变成不能破例。"}
+{"id": "1249224-en-zh", "answer": "我可以獨自做這個。", "meaning": false, "detail": false, "reason": "变成可以独自做，礼物和拒收都消失。"}
+{"id": "1249224-en-zh", "answer": "我不接受這個女孩。", "meaning": false, "detail": false, "reason": "把礼物换成女孩，不能收和不接受也不同。"}
+{"id": "1249224-en-zh", "answer": "我不能預言會發生甚麼。", "meaning": false, "detail": false, "reason": "把收礼换成预测未来。"}
+{"id": "1249224-zh-en", "answer": "I can't conceal with this.", "meaning": false, "detail": false, "reason": "conceal 是隐藏，未译出接受礼物。"}
+{"id": "1249224-zh-en", "answer": "I can't at home.", "meaning": false, "detail": false, "reason": "英文没有完整动作，也没有礼物。"}
+{"id": "1249224-zh-en", "answer": "I can't stand this noise any longer.", "meaning": false, "detail": false, "reason": "变成再也忍受不了噪声。"}
+{"id": "1249224-zh-en", "answer": "I can't afford to play tennis.", "meaning": false, "detail": false, "reason": "变成负担不起打网球。"}
+{"id": "4666781-en-zh", "answer": "汤姆不能打一點兒。", "meaning": false, "detail": false, "reason": "未译出骑马，不能打一点儿的对象也不清楚。"}
+{"id": "4666781-en-zh", "answer": "湯姆不能自已。", "meaning": false, "detail": false, "reason": "“不能自已”说的是控制不住自己。"}
+{"id": "4666781-en-zh", "answer": "汤姆不可能是真的。", "meaning": false, "detail": false, "reason": "“不可能是真的”改变了模态的对象，遗漏骑马。"}
+{"id": "4666781-en-zh", "answer": "汤姆不会系领带。", "meaning": false, "detail": false, "reason": "“不会”正确，骑马却变成了系领带。"}
+{"id": "4666781-zh-en", "answer": "Tom can't let anything.", "meaning": false, "detail": false, "reason": "不能让某事发生，未译出骑马。"}
+{"id": "4666781-zh-en", "answer": "Tom can't stay here.", "meaning": false, "detail": false, "reason": "骑马换成待在这里。"}
+{"id": "4666781-zh-en", "answer": "Tom can't conceal number.", "meaning": false, "detail": false, "reason": "骑马换成隐藏数字。"}
+{"id": "4666781-zh-en", "answer": "Tom can't be older.", "meaning": false, "detail": false, "reason": "变成不可能年纪更大。"}
+{"id": "2698827-en-zh", "answer": "抱歉我能知道得很抱歉。", "meaning": false, "detail": false, "reason": "有道歉，但听不清对方说话的含义消失。"}
+{"id": "2698827-en-zh", "answer": "對不起，但我無法讓你真的是正確。", "meaning": false, "detail": false, "reason": "保留道歉，后半没有表达听力受限。"}
+{"id": "2698827-en-zh", "answer": "抱歉，我没钱。", "meaning": false, "detail": false, "reason": "把听不清换成没钱。"}
+{"id": "2698827-en-zh", "answer": "对不起，但我情不自禁。", "meaning": false, "detail": false, "reason": "把听不清换成情不自禁。"}
+{"id": "2698827-zh-en", "answer": "I'm sorry I'm sorry.", "meaning": false, "detail": false, "reason": "只重复道歉，没有翻译听不清的原因。"}
+{"id": "2698827-zh-en", "answer": "I can't decide if I'm happy or sad.", "meaning": false, "detail": false, "reason": "换成不能判断自己的情绪。"}
+{"id": "2698827-zh-en", "answer": "I'm sorry to you don't know.", "meaning": false, "detail": false, "reason": "提到道歉，却没有表达听不清对方。"}
+{"id": "2698827-zh-en", "answer": "I wish I got the six hours.", "meaning": false, "detail": false, "reason": "换成希望得到六小时。"}
+{"id": "2241048-en-zh", "answer": "我们不能到欧洲。", "meaning": false, "detail": false, "reason": "逃不出去变成不能到欧洲。"}
+{"id": "2241048-en-zh", "answer": "我們不能強迫害。", "meaning": false, "detail": false, "reason": "含否定形式，但“强迫害”没有表达逃脱。"}
+{"id": "2241048-en-zh", "answer": "我们提供水。", "meaning": false, "detail": false, "reason": "换成提供水。"}
+{"id": "2241048-en-zh", "answer": "我們不能破例。", "meaning": false, "detail": false, "reason": "换成不能破例。"}
+{"id": "2241048-zh-en", "answer": "We don't have too much time.", "meaning": false, "detail": false, "reason": "变成时间不多。"}
+{"id": "2241048-zh-en", "answer": "We don't go out to play.", "meaning": false, "detail": false, "reason": "变成不出去玩，遗漏受困而不能逃脱的意思。"}
+{"id": "2241048-zh-en", "answer": "We ought not to play.", "meaning": false, "detail": false, "reason": "把逃不出去变成不应该玩。"}
+{"id": "2241048-zh-en", "answer": "We're having a good us.", "meaning": false, "detail": false, "reason": "残句未表达受困或逃脱。"}
+{"id": "6439709-en-zh", "answer": "汤姆不点啤酒。", "meaning": false, "detail": false, "reason": "把没怎么睡改成不点啤酒。"}
+{"id": "6439709-en-zh", "answer": "湯姆沒有出現在這個大。", "meaning": false, "detail": false, "reason": "谈的是没出现，未涉及睡眠量。"}
+{"id": "6439709-en-zh", "answer": "湯姆沒想冒犯一个。", "meaning": false, "detail": false, "reason": "谈的是没想冒犯人，未涉及睡眠。"}
+{"id": "6439709-en-zh", "answer": "汤姆没有很多关于。", "meaning": false, "detail": false, "reason": "“没有很多关于”没有给出所指的睡眠。"}
+{"id": "6439709-zh-en", "answer": "Tom isn't sleep.", "meaning": false, "detail": false, "reason": "像是在说汤姆没有睡着，未传达睡得少。"}
+{"id": "6439709-zh-en", "answer": "Tom can't sleep without a.", "meaning": false, "detail": false, "reason": "未说明睡得少，还把事实改成了有条件的不能入睡。"}
+{"id": "6439709-zh-en", "answer": "Tom have no one to come.", "meaning": false, "detail": false, "reason": "变成没人来，未译出睡眠。"}
+{"id": "6439709-zh-en", "answer": "Tom didn't sleep for an hour.", "meaning": false, "detail": false, "reason": "加入原文没有的一小时，且没有清楚表达整体睡得少。"}
+{"id": "321324-en-zh", "answer": "它我的狗。", "meaning": false, "detail": false, "reason": "译文出现狗，没有责任归属。"}
+{"id": "321324-en-zh", "answer": "不是我的。", "meaning": false, "detail": false, "reason": "只否定所有权，遗漏错或责任。"}
+{"id": "321324-en-zh", "answer": "不是我的妻子。", "meaning": false, "detail": false, "reason": "把责任换成妻子。"}
+{"id": "321324-zh-en", "answer": "It's not my bag.", "meaning": false, "detail": false, "reason": "换成否定包的所有权。"}
+{"id": "321324-zh-en", "answer": "It's not mine.", "meaning": false, "detail": false, "reason": "表达不是我的东西，未表达不是我的责任。"}
+{"id": "1385-en-zh", "answer": "這是個重要的。", "meaning": false, "detail": false, "reason": "把不重要译成重要。"}
+{"id": "1385-en-zh", "answer": "這個重要不重要。", "meaning": false, "detail": false, "reason": "“重要不重要”成了正反问，未断言不重要。"}
+{"id": "1385-en-zh", "answer": "這是很重要。", "meaning": false, "detail": false, "reason": "译成很重要，肯否相反。"}
+{"id": "1385-en-zh", "answer": "這是不的。", "meaning": false, "detail": false, "reason": "否定词后没有重要性这一谓语。"}
+{"id": "1385-zh-en", "answer": "This isn't difficult.", "meaning": false, "detail": false, "reason": "把不重要换成不难。"}
+{"id": "1385-zh-en", "answer": "This doesn't make sense.", "meaning": false, "detail": false, "reason": "改成没有意义或说不通，不等于不重要。"}
+{"id": "1385-zh-en", "answer": "This is not what he's good.", "meaning": false, "detail": false, "reason": "未译出重要性，且凭空加入他的擅长之事。"}
+{"id": "1385-zh-en", "answer": "This is not wanting.", "meaning": false, "detail": false, "reason": "换成 wanting，未否定重要性。"}
+{"id": "3267389-en-zh", "answer": "我很不高兴。", "meaning": false, "detail": false, "reason": "把不贪婪换成不高兴。"}
+{"id": "3267389-en-zh", "answer": "我沒有出現在。", "meaning": false, "detail": false, "reason": "谈未出现，遗漏贪婪。"}
+{"id": "3267389-en-zh", "answer": "我不嫉妒。", "meaning": false, "detail": false, "reason": "嫉妒和贪婪是不同的特征。"}
+{"id": "3267389-en-zh", "answer": "我不是死板的。", "meaning": false, "detail": false, "reason": "不死板不等于不贪婪。"}
+{"id": "3267389-zh-en", "answer": "I can't buy annual.", "meaning": false, "detail": false, "reason": "加入购买和能力，未表达不贪婪。"}
+{"id": "3267389-zh-en", "answer": "I don't have to.", "meaning": false, "detail": false, "reason": "译成没有义务，贪婪消失。"}
+{"id": "3267389-zh-en", "answer": "I didn't feel like an hour.", "meaning": false, "detail": false, "reason": "提到感觉和一小时，未译出不贪婪。"}
+{"id": "3267389-zh-en", "answer": "I do not order juice.", "meaning": false, "detail": false, "reason": "变成不点果汁。"}
+{"id": "3010330-en-zh", "answer": "湯姆不來不來。", "meaning": false, "detail": false, "reason": "把未回信改成不来，玛丽也丢失。"}
+{"id": "3010330-en-zh", "answer": "湯姆沒有寫瑪麗。", "meaning": false, "detail": false, "reason": "辨出了两个人和写，但没有保留“回复”的关系。"}
+{"id": "3010330-en-zh", "answer": "湯姆沒寫瑪麗。", "meaning": false, "detail": false, "reason": "“没写玛丽”不表示没有给玛丽回信。"}
+{"id": "3010330-en-zh", "answer": "湯姆沒有把瑪麗不難。", "meaning": false, "detail": false, "reason": "两个人名出现，否定的事件无法辨认。"}
+{"id": "3010330-zh-en", "answer": "Tom helped Mary buy everything.", "meaning": false, "detail": false, "reason": "把没有回复改成帮玛丽买东西。"}
+{"id": "3010330-zh-en", "answer": "Tom is shy and Mary were both born.", "meaning": false, "detail": false, "reason": "加入害羞和出生，未译出回复。"}
+{"id": "3010330-zh-en", "answer": "Tom didn't mean to Mary.", "meaning": false, "detail": false, "reason": "没有表示回复的动词。"}
+{"id": "3010330-zh-en", "answer": "Tom is later.", "meaning": false, "detail": false, "reason": "换成汤姆较迟，玛丽和回应都消失。"}
+{"id": "6531676-en-zh", "answer": "我不想聽不到那麼。", "meaning": false, "detail": false, "reason": "把没打算说改成有关听不见的残句。"}
+{"id": "6531676-en-zh", "answer": "我沒想那麼說的。", "meaning": true, "detail": true, "reason": "“没想那么说的”准确否定说那句话的意图。"}
+{"id": "6531676-en-zh", "answer": "我沒想弄壞的。", "meaning": false, "detail": false, "reason": "保留无意，但说话换成弄坏东西。"}
+{"id": "6531676-zh-en", "answer": "I'm not guilty of anything.", "meaning": false, "detail": false, "reason": "把无意说那句话改成自己没有罪。"}
+{"id": "6531676-zh-en", "answer": "I didn't mean to that.", "meaning": false, "detail": false, "reason": "有否定意图的开头，但缺少说这一动作，无法还原原意。"}
+{"id": "714329-en-zh", "answer": "我的手錶慢了這個機。", "meaning": false, "detail": false, "reason": "认出手表慢，未译出五分钟。"}
+{"id": "714329-en-zh", "answer": "我的父親是真的。", "meaning": false, "detail": false, "reason": "把手表误差改成父亲的事情。"}
+{"id": "714329-en-zh", "answer": "我的手錶出了毛病。", "meaning": false, "detail": false, "reason": "只说手表有毛病，遗漏慢了几分钟。"}
+{"id": "714329-en-zh", "answer": "我对他的态度变了。", "meaning": false, "detail": false, "reason": "改成对他的态度有变化。"}
+{"id": "714329-zh-en", "answer": "My baby began crying, asking for milk.", "meaning": false, "detail": false, "reason": "变成宝宝哭着要奶。"}
+{"id": "714329-zh-en", "answer": "My camera can shoot high-definition video.", "meaning": false, "detail": false, "reason": "改成相机能拍高清视频。"}
+{"id": "714329-zh-en", "answer": "My watch is collered with my watch.", "meaning": false, "detail": false, "reason": "认出手表，却未给出五分钟误差。"}
+{"id": "714329-zh-en", "answer": "My watch is waterproof.", "meaning": false, "detail": false, "reason": "防水性不能表达手表慢五分钟。"}
+{"id": "32854-en-zh", "answer": "請把她或不來，她是個孩子。", "meaning": false, "detail": false, "reason": "把她有孩子改成她是个孩子，且缺少三个。"}
+{"id": "32854-en-zh", "answer": "不再过，她不孩子们。", "meaning": false, "detail": false, "reason": "含孩子一词，三个以及她有孩子的关系都未表达。"}
+{"id": "32854-en-zh", "answer": "請給她，但我把它丢了。", "meaning": false, "detail": false, "reason": "换成给东西和丢了东西。"}
+{"id": "32854-en-zh", "answer": "她的離開心。", "meaning": false, "detail": false, "reason": "没有孩子或数量。"}
+{"id": "32854-zh-en", "answer": "She's a child, she had no objection.", "meaning": false, "detail": false, "reason": "译成她自己是孩子，还加上没有异议。"}
+{"id": "32854-zh-en", "answer": "She has just able to you.", "meaning": false, "detail": false, "reason": "英语残句没有孩子或数量。"}
+{"id": "32854-zh-en", "answer": "She has three brothers of her work.", "meaning": false, "detail": false, "reason": "数字三出现，但孩子被换成兄弟。"}
+{"id": "32854-zh-en", "answer": "She's not, not, not injured.", "meaning": false, "detail": false, "reason": "把有三个孩子换成没有受伤。"}
+{"id": "6222208-en-zh", "answer": "我比你多三歲。", "meaning": false, "detail": true, "reason": "保留三岁的年龄差，却把我比你年轻译成我比你年长。"}
+{"id": "6222208-en-zh", "answer": "我年約年約年約年約年。", "meaning": false, "detail": false, "reason": "重复年龄有关的字，丢失比较和三岁。"}
+{"id": "6222208-en-zh", "answer": "我很高兴你比你比你最好不要立刻做。", "meaning": false, "detail": false, "reason": "出现比较词，没有明确年龄差。"}
+{"id": "6222208-en-zh", "answer": "我比你比你比你。", "meaning": false, "detail": false, "reason": "重复“比你”，没有三岁或年轻。"}
+{"id": "6222208-zh-en", "answer": "I three three three in three.", "meaning": false, "detail": false, "reason": "只重复 three，没有年龄单位或比较。"}
+{"id": "6222208-zh-en", "answer": "I am three weeks at all right.", "meaning": false, "detail": false, "reason": "三岁被换成三个星期。"}
+{"id": "6222208-zh-en", "answer": "I can't believe you did this.", "meaning": false, "detail": false, "reason": "把年龄比较换成不敢相信。"}
+{"id": "6222208-zh-en", "answer": "I'm really surprised you got a prize.", "meaning": false, "detail": false, "reason": "换成惊讶于对方获奖。"}
+{"id": "1492179-en-zh", "answer": "我吃午饭足够三个人吃。", "meaning": false, "detail": false, "reason": "三次变成三个人，吃肉和每周的频率丢失。"}
+{"id": "1492179-en-zh", "answer": "我喝牛奶。", "meaning": false, "detail": false, "reason": "换成喝牛奶，完全丢失频率。"}
+{"id": "1492179-en-zh", "answer": "我吃午饭。", "meaning": false, "detail": false, "reason": "只译成吃午饭，遗漏肉和每周三次。"}
+{"id": "1492179-en-zh", "answer": "我吃午饭足球员。", "meaning": false, "detail": false, "reason": "提到午饭和足球员，未表达频率。"}
+{"id": "1492179-zh-en", "answer": "I spend to eat lunch at all.", "meaning": false, "detail": false, "reason": "谈吃午饭，遗漏肉、次数和周期。"}
+{"id": "1492179-zh-en", "answer": "I like tea to eat snacks.", "meaning": false, "detail": false, "reason": "把吃肉改成茶和零食，未译出频率。"}
+{"id": "1492179-zh-en", "answer": "I have to eat lunchool in Boston.", "meaning": false, "detail": false, "reason": "加入波士顿和午餐，未表达每周三次。"}
+{"id": "1492179-zh-en", "answer": "I have three weeks.", "meaning": false, "detail": false, "reason": "三个星期是时长，不是每周吃三次。"}
+{"id": "8075346-en-zh", "answer": "我們通常飯後喝。", "meaning": false, "detail": false, "reason": "换成通常饭后喝东西，遗漏跑步和距离。"}
+{"id": "8075346-en-zh", "answer": "我們有充足的時間。", "meaning": false, "detail": false, "reason": "把三公里改成有充足时间。"}
+{"id": "8075346-en-zh", "answer": "我們有兩張過。", "meaning": false, "detail": false, "reason": "量词和数字均不符，没有跑步。"}
+{"id": "8075346-en-zh", "answer": "我们三個小時候。", "meaning": false, "detail": false, "reason": "有数字三，未表达跑步或公里。"}
+{"id": "8075346-zh-en", "answer": "We have three parket on Sunday.", "meaning": false, "detail": false, "reason": "有 three，但没有跑步或公里，还加上周日。"}
+{"id": "8075346-zh-en", "answer": "We have three sandwork.", "meaning": false, "detail": false, "reason": "只留下三，未译出跑步距离。"}
+{"id": "8075346-zh-en", "answer": "We don't have to be in Boston.", "meaning": false, "detail": false, "reason": "换成不必在波士顿。"}
+{"id": "8075346-zh-en", "answer": "We don't have anything.", "meaning": false, "detail": false, "reason": "译成什么都没有。"}
+{"id": "530682-en-zh", "answer": "這個人都很高。", "meaning": false, "detail": false, "reason": "换成人很高，未译出票的有效期。"}
+{"id": "530682-en-zh", "answer": "这家店在牢骚。", "meaning": false, "detail": false, "reason": "换成店和牢骚，遗漏票及有效期。"}
+{"id": "530682-en-zh", "answer": "這個杯子裡的水。", "meaning": false, "detail": false, "reason": "只提到杯中的水。"}
+{"id": "530682-en-zh", "answer": "这家旅行转帐付款。", "meaning": false, "detail": false, "reason": "谈旅行付款，未说三天有效。"}
+{"id": "530682-zh-en", "answer": "This is little water in the pond.", "meaning": false, "detail": false, "reason": "换成池塘里水少。"}
+{"id": "530682-zh-en", "answer": "This plan is a very ticketic afternoon.", "meaning": false, "detail": false, "reason": "虽有类似 ticket 的拼写，没表达票三天有效。"}
+{"id": "530682-zh-en", "answer": "This is going to be a table of this year.", "meaning": false, "detail": false, "reason": "换成有关桌子和年份的句子。"}
+{"id": "530682-zh-en", "answer": "This is the most important me.", "meaning": false, "detail": false, "reason": "换成关于重要性的残句。"}
+{"id": "788259-en-zh", "answer": "昨晚下大雨。", "meaning": false, "detail": false, "reason": "昨晚保留了，吃咖喱饭却变成下大雨，时间没有绑定原事件。"}
+{"id": "788259-en-zh", "answer": "我們去年約。", "meaning": false, "detail": false, "reason": "昨晚变成去年，进餐也消失。"}
+{"id": "788259-en-zh", "answer": "我們的友情會長久留存。", "meaning": false, "detail": false, "reason": "换成友谊长久。"}
+{"id": "788259-en-zh", "answer": "我們有很久時開。", "meaning": false, "detail": false, "reason": "译文没有可辨认的进餐事件或昨晚。"}
+{"id": "788259-zh-en", "answer": "We ate ate pizz after colle.", "meaning": false, "detail": false, "reason": "提到吃，却没有昨晚，食物也不同。"}
+{"id": "788259-zh-en", "answer": "We had lunch at home last night.", "meaning": false, "detail": true, "reason": "正确把用餐放在昨晚，咖喱饭却变成午餐，并新增在家。"}
+{"id": "788259-zh-en", "answer": "We're ready to coffee.", "meaning": false, "detail": false, "reason": "输出准备喝咖啡，遗漏昨晚吃咖喱饭。"}
+{"id": "788259-zh-en", "answer": "We can't for coffee.", "meaning": false, "detail": false, "reason": "换成涉及咖啡的残句。"}
+{"id": "1488371-en-zh", "answer": "我在沙發上砍下了一首車。", "meaning": false, "detail": false, "reason": "现在图书馆学习被换成沙发上的不明动作。"}
+{"id": "1488371-en-zh", "answer": "我正在用現在這個問題。", "meaning": false, "detail": false, "reason": "有正在的形式，但没有绑定学习。"}
+{"id": "1488371-en-zh", "answer": "在在在学习外見外。", "meaning": false, "detail": true, "reason": "可辨出“在学习”，但前后重复并生成无关字，图书馆和主语没有译清楚。"}
+{"id": "1488371-en-zh", "answer": "我在陽在學習裡。", "meaning": false, "detail": false, "reason": "出现“学习”，但“在学习里”的地点结构混乱，未明确说正在学习。"}
+{"id": "1488371-zh-en", "answer": "I'm glad to was there.", "meaning": false, "detail": false, "reason": "换成高兴到过某处。"}
+{"id": "1488371-zh-en", "answer": "I'm learning a book to learn.", "meaning": false, "detail": true, "reason": "进行式 learning 保留正在学习，后半残缺且遗漏图书馆。"}
+{"id": "1488371-zh-en", "answer": "I'm the desk in a book at the desk.", "meaning": false, "detail": false, "reason": "提到桌子和书，没有表达学习活动。"}
+{"id": "1488371-zh-en", "answer": "I'm drinking apple juice.", "meaning": false, "detail": false, "reason": "正在喝苹果汁，进行体用在另一个事件上。"}
+{"id": "4664972-en-zh", "answer": "汤姆去年去了波士顿了。", "meaning": false, "detail": false, "reason": "去年保留，大专学业完成变成去了波士顿。"}
+{"id": "4664972-en-zh", "answer": "湯姆讓我們去年去了伦敦了。", "meaning": false, "detail": false, "reason": "去年的事件变成让我们去伦敦。"}
+{"id": "4664972-en-zh", "answer": "湯姆卖咖啡。", "meaning": false, "detail": false, "reason": "换成卖咖啡，没有去年或学业。"}
+{"id": "4664972-en-zh", "answer": "湯姆去年去了咎世。", "meaning": false, "detail": false, "reason": "有去年，却未表达读完大学。"}
+{"id": "4664972-zh-en", "answer": "Tom visited to go to school last year.", "meaning": false, "detail": false, "reason": "虽提到去年和学校，去上学并不表示完成大学学业。"}
+{"id": "4664972-zh-en", "answer": "Tom will probably never be late again.", "meaning": false, "detail": false, "reason": "把去年毕业换成将来大概不再迟到。"}
+{"id": "4664972-zh-en", "answer": "Tom visited to study to the stepper spray in the step.", "meaning": false, "detail": false, "reason": "提到 study，未表达毕业或去年。"}
+{"id": "4664972-zh-en", "answer": "Tom visited last year.", "meaning": false, "detail": false, "reason": "去年保留，完成学业换成拜访。"}
+{"id": "73151-en-zh", "answer": "他给自己一个人走。", "meaning": false, "detail": false, "reason": "提到走，遗漏一小时前。"}
+{"id": "73151-en-zh", "answer": "他以前住在这儿。", "meaning": false, "detail": false, "reason": "变成他以前住在这里。"}
+{"id": "73151-en-zh", "answer": "他三年前死了。", "meaning": false, "detail": false, "reason": "变成三年前去世，时间和事件都错。"}
+{"id": "73151-en-zh", "answer": "他喝了三瓶啤酒。", "meaning": false, "detail": false, "reason": "换成喝三瓶啤酒。"}
+{"id": "73151-zh-en", "answer": "He has been to leave.", "meaning": false, "detail": false, "reason": "有 leave，但无明确一小时前，时态结构也有误。"}
+{"id": "73151-zh-en", "answer": "He is going to be out of fin.", "meaning": false, "detail": false, "reason": "变成将来的不完整事件。"}
+{"id": "73151-zh-en", "answer": "I'm sorry to take my medic.", "meaning": false, "detail": false, "reason": "人称和事件都变了，遗漏离开时间。"}
+{"id": "73151-zh-en", "answer": "It's not to eat something delicious.", "meaning": false, "detail": false, "reason": "换成有关吃东西的句子。"}
+{"id": "2737521-en-zh", "answer": "他們昨天到這裡。", "meaning": true, "detail": true, "reason": "人物、昨天和到这里的事件齐全，句末不用“的”也自然。"}
+{"id": "2737521-en-zh", "answer": "昨天这儿玩了。", "meaning": false, "detail": false, "reason": "昨天和此地保留，到达变成玩。"}
+{"id": "2737521-en-zh", "answer": "他們親到這裡。", "meaning": false, "detail": false, "reason": "提到他们到这里，但没有昨天。"}
+{"id": "2737521-en-zh", "answer": "他們在這裡這裡等。", "meaning": false, "detail": false, "reason": "到达改成在这里等，昨天也丢失。"}
+{"id": "2737521-zh-en", "answer": "They don't know anything about it.", "meaning": false, "detail": false, "reason": "换成他们对此一无所知。"}
+{"id": "2737521-zh-en", "answer": "They were stayed in the yesterday.", "meaning": false, "detail": false, "reason": "提到昨天，停留与到达不同。"}
+{"id": "2737521-zh-en", "answer": "Their yesterday's yesterday.", "meaning": false, "detail": false, "reason": "只重复昨天，没有到达事件。"}
+{"id": "2737521-zh-en", "answer": "They were persecuted.", "meaning": false, "detail": false, "reason": "换成受到迫害。"}
+{"id": "249413-en-zh", "answer": "我們不要討去學校。", "meaning": false, "detail": false, "reason": "没有说明明天讨论问题，新增学校。"}
+{"id": "249413-en-zh", "answer": "我們明天會在明天来。", "meaning": false, "detail": false, "reason": "明天保留，活动却变成来。"}
+{"id": "249413-en-zh", "answer": "我们明天要去野餐。", "meaning": false, "detail": false, "reason": "把明天讨论问题改成明天去野餐。"}
+{"id": "249413-en-zh", "answer": "我们明天要問了。", "meaning": false, "detail": false, "reason": "明天提问不同于明天讨论问题，讨论对象也消失。"}
+{"id": "249413-zh-en", "answer": "We have to be painted this problem.", "meaning": false, "detail": false, "reason": "有问题一词，未译出明天讨论。"}
+{"id": "249413-zh-en", "answer": "We're going to do tomorrow.", "meaning": false, "detail": false, "reason": "只表达明天要做事，未说明讨论什么。"}
+{"id": "249413-zh-en", "answer": "We've never had this problem before.", "meaning": false, "detail": false, "reason": "换成从来没有过这个问题。"}
+{"id": "249413-zh-en", "answer": "We've got plenty of time.", "meaning": false, "detail": false, "reason": "换成时间很充裕。"}
+{"id": "11291130-en-zh", "answer": "這個你正在開的車的有机农场。", "meaning": false, "detail": false, "reason": "把自行车与赠送换成开车和农场。"}
+{"id": "11291130-en-zh", "answer": "這個人過去。", "meaning": false, "detail": false, "reason": "换成人过去，遗漏赠送。"}
+{"id": "11291130-en-zh", "answer": "這輛自行車是我的。", "meaning": false, "detail": false, "reason": "认出自行车，把赠给对方改为断言归我。"}
+{"id": "11291130-zh-en", "answer": "There's no milk in the.", "meaning": false, "detail": false, "reason": "换成没有牛奶的残句。"}
+{"id": "11291130-zh-en", "answer": "This car he's driving.", "meaning": false, "detail": false, "reason": "改成他开的汽车，遗漏赠送。"}
+{"id": "11291130-zh-en", "answer": "The bicycle is bicy.", "meaning": false, "detail": false, "reason": "认出自行车但未表达送给对方。"}
+{"id": "11291130-zh-en", "answer": "It's bicycle.", "meaning": false, "detail": false, "reason": "仅辨出自行车，没有赠送和受赠者。"}
+{"id": "434614-en-zh", "answer": "你滑冰嗎？", "meaning": false, "detail": false, "reason": "把记得我们改成滑冰。"}
+{"id": "434614-en-zh", "answer": "你經常早餐喝茶嗎？", "meaning": false, "detail": false, "reason": "换成早餐是否常喝茶。"}
+{"id": "434614-en-zh", "answer": "你記帳嗎？", "meaning": false, "detail": false, "reason": "“记账”与“记得我们”含义不同。"}
+{"id": "434614-en-zh", "answer": "你能帮我吗？", "meaning": false, "detail": false, "reason": "把记得我们改成能否帮助我。"}
+{"id": "434614-zh-en", "answer": "What time do you go home?", "meaning": false, "detail": false, "reason": "询问回家时间，没有关于记得我们的提问。"}
+{"id": "434614-zh-en", "answer": "You're invive don't you?", "meaning": false, "detail": false, "reason": "问句残缺，未表达记得我们。"}
+{"id": "434614-zh-en", "answer": "Do you remembering us?", "meaning": true, "detail": true, "reason": "remembering 应改为 remember，但问谁是否记得我们仍清楚，按语义通过。"}
+{"id": "434614-zh-en", "answer": "Why did you have tea?", "meaning": false, "detail": false, "reason": "换成问为什么喝茶。"}
+{"id": "5756645-en-zh", "answer": "給湯姆，湯姆。", "meaning": false, "detail": false, "reason": "把接收者换成汤姆，也没有叉子。"}
+{"id": "5756645-en-zh", "answer": "請給湯姆。", "meaning": false, "detail": false, "reason": "让人给汤姆，而非叫汤姆拿叉子给我。"}
+{"id": "5756645-en-zh", "answer": "给汤姆，湯姆。", "meaning": false, "detail": false, "reason": "重复汤姆，叉子没有译出。"}
+{"id": "5756645-en-zh", "answer": "給我一桶水。", "meaning": false, "detail": false, "reason": "请求形式正确，把叉子换成一桶水。"}
+{"id": "5756645-zh-en", "answer": "I have a lot of Tom.", "meaning": false, "detail": false, "reason": "陈述我有很多汤姆，没有请求取叉子。"}
+{"id": "5756645-zh-en", "answer": "I bought a Tom, but I lost it.", "meaning": false, "detail": false, "reason": "编造购买和丢失汤姆的情节。"}
+{"id": "5756645-zh-en", "answer": "Give me, Tom turned up, I am all the ticket.", "meaning": false, "detail": false, "reason": "有 give me 和汤姆，仍未说明要叉子，且新增无关信息。"}
+{"id": "5756645-zh-en", "answer": "I got to tell Tom, but I've ever seen you.", "meaning": false, "detail": false, "reason": "换成告诉汤姆和见到某人。"}
+{"id": "239100-en-zh", "answer": "狗喂狗喂狗了下来。", "meaning": false, "detail": false, "reason": "有狗，但走过街道变成喂狗的重复片段。"}
+{"id": "239100-en-zh", "answer": "狗喂狗喂狗。", "meaning": false, "detail": false, "reason": "只重复狗和喂，遗漏过街。"}
+{"id": "239100-en-zh", "answer": "這個男孩跳入了水中。", "meaning": false, "detail": false, "reason": "换成男孩跳入水中。"}
+{"id": "239100-en-zh", "answer": "這個老人拄著這個走。", "meaning": false, "detail": false, "reason": "狗变成老人，也没有过街。"}
+{"id": "239100-zh-en", "answer": "The dog is closely across the dog.", "meaning": false, "detail": false, "reason": "有 dog 和 across，街道却换成另一只狗，没有表达穿过街道。"}
+{"id": "239100-zh-en", "answer": "The dog is a doger crank.", "meaning": false, "detail": false, "reason": "只有狗相关的残句，没有过街。"}
+{"id": "239100-zh-en", "answer": "This watch is the dog.", "meaning": false, "detail": false, "reason": "把手表和狗混为一谈。"}
+{"id": "239100-zh-en", "answer": "There's no water in the well.", "meaning": false, "detail": false, "reason": "换成井里没有水。"}
+{"id": "2649011-en-zh", "answer": "我喝湯姆嗎？", "meaning": false, "detail": false, "reason": "谈喝汤姆，遗漏演员身份。"}
+{"id": "2649011-en-zh", "answer": "我為得多久？", "meaning": false, "detail": false, "reason": "改成第一人称及询问时长。"}
+{"id": "2649011-en-zh", "answer": "湯姆嗎？", "meaning": false, "detail": false, "reason": "只问“汤姆吗”，没有说演员。"}
+{"id": "2649011-en-zh", "answer": "汤姆是个常吗？", "meaning": false, "detail": false, "reason": "保留汤姆和问句，但“常”没有表达演员。"}
+{"id": "2649011-zh-en", "answer": "Tom is a teacher?", "meaning": false, "detail": false, "reason": "人物和问句保留，演员变成教师。"}
+{"id": "2649011-zh-en", "answer": "Is Tom a listen to?", "meaning": false, "detail": false, "reason": "只有汤姆和问句框架，没有演员。"}
+{"id": "2649011-zh-en", "answer": "Is Tom a few shoes?", "meaning": false, "detail": false, "reason": "把演员改成鞋子。"}
+{"id": "2649011-zh-en", "answer": "Who is the play begin?", "meaning": false, "detail": false, "reason": "换成含 play 的不完整问句，未问汤姆是否为演员。"}
+{"id": "1636184-en-zh", "answer": "蘋果汁了吗？", "meaning": false, "detail": false, "reason": "问到苹果汁，偷窃和谁都丢失。"}
+{"id": "1636184-en-zh", "answer": "這些蘋果？", "meaning": false, "detail": false, "reason": "只有“这些苹果”，没问谁偷的。"}
+{"id": "1636184-en-zh", "answer": "這個池塘裡的水吗？", "meaning": false, "detail": false, "reason": "换成询问池塘的水。"}
+{"id": "1636184-en-zh", "answer": "谁来了蘋果？", "meaning": false, "detail": false, "reason": "有谁和苹果，把偷换成来，不能表达偷苹果。"}
+{"id": "1636184-zh-en", "answer": "Would you like some more expensive than milk?", "meaning": false, "detail": false, "reason": "换成有关牛奶价格的问句。"}
+{"id": "1636184-zh-en", "answer": "How much is your new?", "meaning": false, "detail": false, "reason": "改成询问价格。"}
+{"id": "1636184-zh-en", "answer": "Who was the apple?", "meaning": false, "detail": false, "reason": "问谁是苹果，关系错误。"}
+{"id": "1636184-zh-en", "answer": "Who does this apple?", "meaning": false, "detail": false, "reason": "保留谁和苹果，未表达偷这一动作。"}
+{"id": "261486-en-zh", "answer": "我对外籍员工作。", "meaning": false, "detail": false, "reason": "换成有关外籍员工的陈述。"}
+{"id": "261486-en-zh", "answer": "我很過去過人。", "meaning": false, "detail": false, "reason": "残句没有具体登山经历或两次。"}
+{"id": "261486-en-zh", "answer": "我們一點言會成總賴。", "meaning": false, "detail": false, "reason": "人称变化，也没有富士山或次数。"}
+{"id": "261486-en-zh", "answer": "我們有很容易治。", "meaning": false, "detail": false, "reason": "译文不成句，没有表达两次登山。"}
+{"id": "261486-zh-en", "answer": "I'm not to talk to the other day.", "meaning": false, "detail": false, "reason": "换成说话和日期，没有登山次数。"}
+{"id": "261486-zh-en", "answer": "I went to the school in Boston.", "meaning": false, "detail": false, "reason": "换成去波士顿的学校。"}
+{"id": "261486-zh-en", "answer": "I spent all the first time to the bus.", "meaning": false, "detail": false, "reason": "first time 也没有表达登富士山两次。"}
+{"id": "261486-zh-en", "answer": "I was in Boston last year.", "meaning": false, "detail": false, "reason": "变成去年在波士顿。"}
+{"id": "58208-en-zh", "answer": "你能帮我吗？", "meaning": false, "detail": false, "reason": "只问能否帮忙，没有说明帮忙留座。"}
+{"id": "58208-en-zh", "answer": "你可以给我一起喝。", "meaning": false, "detail": false, "reason": "换成一起喝，遗漏保留座位。"}
+{"id": "58208-en-zh", "answer": "你能帮我把这译要嗎？", "meaning": false, "detail": false, "reason": "只留下求助形式，未译出留座。"}
+{"id": "58208-en-zh", "answer": "你能給我的嗎？", "meaning": false, "detail": false, "reason": "变成询问能否给东西，缺少座位和保留动作。"}
+{"id": "58208-zh-en", "answer": "Do you want to me a me?", "meaning": false, "detail": false, "reason": "问句残缺，看不出请求留座。"}
+{"id": "58208-zh-en", "answer": "Can I can go to the sch?", "meaning": false, "detail": false, "reason": "改成问自己能否出行。"}
+{"id": "58208-zh-en", "answer": "Can I help you?", "meaning": false, "detail": false, "reason": "帮忙的方向反了，也没提座位。"}
+{"id": "58208-zh-en", "answer": "Would you save this dress for me?", "meaning": false, "detail": false, "reason": "请求帮我保留的结构正确，但座位变成衣服。"}

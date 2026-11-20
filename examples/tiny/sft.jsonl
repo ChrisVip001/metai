@@ -1,0 +1,4 @@
+{"instruction":"1+1?","output":"2"}
+{"instruction":"1+2?","output":"3"}
+{"instruction":"2+2?","output":"4"}
+{"instruction":"2+1?","output":"3"}

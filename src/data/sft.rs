@@ -1,4 +1,4 @@
-use burn::data::dataset::Dataset;
+use burn::data::dataset::{Dataset, DatasetError};
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -18,6 +18,13 @@ pub struct InstructionDataset {
 }
 
 impl InstructionDataset {
+    pub fn supervised_targets(&self) -> usize {
+        self.data
+            .iter()
+            .map(|(_, mask)| mask.iter().skip(1).filter(|&&v| v == 1).count())
+            .sum()
+    }
+
     pub fn from_file(
         path: &str,
         tokenizer: &MetaITokenizer,
@@ -26,15 +33,6 @@ impl InstructionDataset {
         let file = File::open(path)?;
         let reader = BufReader::new(file);
         let mut data = Vec::new();
-
-        // Chat Template 标记
-        // 假设 tokenizer 已经有了这些特殊 token，或者我们硬编码字符串
-        // 这里为了通用性，直接使用字符串拼接，依赖 tokenizer 编码
-        // 格式: <|user|>\n{instruction}\n<|assistant|>\n{output}<|endoftext|>
-
-        let user_tag = "<|user|>\n";
-        let assistant_tag = "\n<|assistant|>\n";
-        let eos_tag = "<|endoftext|>";
 
         for line in reader.lines() {
             let line = line?;
@@ -46,41 +44,8 @@ impl InstructionDataset {
             let item: InstructionItem = serde_json::from_str(&line)
                 .map_err(|e| anyhow::anyhow!("Failed to parse JSON line: {}", e))?;
 
-            // 1. 构建 Prompt (Instruction) 部分 -> Mask = 0
-            let input_content = item.input.unwrap_or_default();
-            let prompt_str = format!(
-                "{}{}{}{}",
-                user_tag, item.instruction, input_content, assistant_tag
-            );
-            let prompt_ids = tokenizer.encode(&prompt_str);
-
-            // 2. 构建 Response (Output) 部分 -> Mask = 1
-            let response_str = format!("{}{}", item.output, eos_tag);
-            let response_ids = tokenizer.encode(&response_str);
-
-            if prompt_ids.is_empty() || response_ids.is_empty() {
-                continue;
-            }
-
-            // 3. 拼接与截断
-            let mut full_ids = prompt_ids.clone();
-            full_ids.extend(&response_ids);
-
-            let mut mask = vec![0u32; prompt_ids.len()];
-            mask.extend(vec![1u32; response_ids.len()]);
-
-            // Truncate if needed
-            if full_ids.len() > max_length {
-                // SFT 通常截断尾部，或者只训练部分
-                // 这里简单截断，保留前面的 Instruction 和部分 Output
-                full_ids.truncate(max_length);
-                mask.truncate(max_length);
-            }
-
-            // 4. Filter short sequences
-            // 至少要有 1 个 token 用于训练 (Output 部分至少包含 1 个)
-            if mask.iter().sum::<u32>() > 0 {
-                data.push((full_ids, mask));
+            if let Some(row) = encode_instruction(&item, tokenizer, max_length) {
+                data.push(row);
             }
         }
 
@@ -88,9 +53,39 @@ impl InstructionDataset {
     }
 }
 
+/// Encode one SFT record and mark only its answer and EOS for next-token loss.
+pub fn encode_instruction(
+    item: &InstructionItem,
+    tokenizer: &MetaITokenizer,
+    max_length: usize,
+) -> Option<(Vec<u32>, Vec<u32>)> {
+    let prompt = super::chat_prompt(&item.instruction, item.input.as_deref().unwrap_or_default());
+    let mut ids = tokenizer.encode(&prompt);
+    let prompt_len = ids.len();
+    if prompt_len == 0 || prompt_len >= max_length {
+        return None;
+    }
+    ids.extend(
+        tokenizer
+            .response(&item.output)
+            .into_iter()
+            .take(max_length - prompt_len),
+    );
+    if ids.len() == prompt_len {
+        return None;
+    }
+    let mut mask = vec![0; prompt_len];
+    mask.resize(ids.len(), 1);
+    Some((ids, mask))
+}
+
 impl Dataset<(Vec<u32>, Vec<u32>)> for InstructionDataset {
-    fn get(&self, index: usize) -> Option<(Vec<u32>, Vec<u32>)> {
-        self.data.get(index).cloned()
+    fn get(&self, index: usize) -> Result<(Vec<u32>, Vec<u32>), DatasetError> {
+        self.data
+            .as_slice()
+            .get(index)
+            .cloned()
+            .ok_or_else(|| DatasetError::new(std::io::Error::other("invalid dataset index")))
     }
 
     fn len(&self) -> usize {
@@ -99,33 +94,28 @@ impl Dataset<(Vec<u32>, Vec<u32>)> for InstructionDataset {
 }
 
 use burn::data::dataloader::batcher::Batcher;
-use burn::tensor::backend::Backend;
 use burn::tensor::{Int, Tensor};
 
 #[derive(Clone)]
-pub struct SFTBatcher<B: Backend> {
+pub struct SFTBatcher {
     pad_id: u32,
-    _phantom: std::marker::PhantomData<B>,
 }
 
-impl<B: Backend> SFTBatcher<B> {
-    pub fn new(_device: B::Device, pad_id: u32) -> Self {
-        Self {
-            pad_id,
-            _phantom: std::marker::PhantomData,
-        }
+impl SFTBatcher {
+    pub fn new(_device: burn::tensor::Device, pad_id: u32) -> Self {
+        Self { pad_id }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct SFTBatch<B: Backend> {
-    pub inputs: Tensor<B, 2, Int>,
-    pub targets: Tensor<B, 2, Int>,
-    pub mask: Tensor<B, 2, Int>, // 0 for ignored, 1 for active loss
+pub struct SFTBatch {
+    pub inputs: Tensor<2, Int>,
+    pub targets: Tensor<2, Int>,
+    pub mask: Tensor<2, Int>, // 0 for ignored, 1 for active loss
 }
 
-impl<B: Backend> Batcher<B, (Vec<u32>, Vec<u32>), SFTBatch<B>> for SFTBatcher<B> {
-    fn batch(&self, items: Vec<(Vec<u32>, Vec<u32>)>, device: &B::Device) -> SFTBatch<B> {
+impl Batcher<(Vec<u32>, Vec<u32>), SFTBatch> for SFTBatcher {
+    fn batch(&self, items: Vec<(Vec<u32>, Vec<u32>)>, device: &burn::tensor::Device) -> SFTBatch {
         if items.is_empty() {
             let empty = Tensor::zeros([0, 0], device);
             return SFTBatch {
@@ -190,17 +180,17 @@ impl<B: Backend> Batcher<B, (Vec<u32>, Vec<u32>), SFTBatch<B>> for SFTBatcher<B>
             mask_data.extend(mask);
         }
 
-        let inputs = Tensor::<B, 2, Int>::from_data(
+        let inputs = Tensor::<2, Int>::from_data(
             burn::tensor::TensorData::new(inputs_data, [batch_size, max_len]),
             device,
         );
 
-        let targets = Tensor::<B, 2, Int>::from_data(
+        let targets = Tensor::<2, Int>::from_data(
             burn::tensor::TensorData::new(targets_data, [batch_size, max_len]),
             device,
         );
 
-        let mask = Tensor::<B, 2, Int>::from_data(
+        let mask = Tensor::<2, Int>::from_data(
             burn::tensor::TensorData::new(mask_data, [batch_size, max_len]),
             device,
         );
@@ -219,9 +209,9 @@ impl<B: Backend> Batcher<B, (Vec<u32>, Vec<u32>), SFTBatch<B>> for SFTBatcher<B>
 
 #[derive(Clone, Debug)]
 pub struct GRPOItem {
+    pub answer: String,
     pub instruction: String,
     pub prompt: Vec<u32>,
-    pub response: Vec<u32>, // teacher 参考响应（可做奖励对照，不直接参与 loss）
 }
 
 #[derive(Clone)]
@@ -239,10 +229,6 @@ impl GRPODataset {
         let reader = BufReader::new(file);
         let mut data = Vec::new();
 
-        let user_tag = "<|user|>\n";
-        let assistant_tag = "\n<|assistant|>\n";
-        let eos_tag = "<|endoftext|>";
-
         for line in reader.lines() {
             let line = line?;
             if line.trim().is_empty() {
@@ -253,33 +239,23 @@ impl GRPODataset {
                 .map_err(|e| anyhow::anyhow!("Failed to parse JSON line: {}", e))?;
 
             let input_content = item.input.clone().unwrap_or_default();
-            let prompt_str = format!(
-                "{}{}{}{}",
-                user_tag, item.instruction, input_content, assistant_tag
-            );
+            let prompt_str = super::chat_prompt(&item.instruction, &input_content);
             let prompt_ids = tokenizer.encode(&prompt_str);
 
-            let response_str = format!("{}{}", item.output, eos_tag);
-            let response_ids = tokenizer.encode(&response_str);
-
-            if prompt_ids.is_empty() || response_ids.is_empty() {
-                continue;
-            }
-
-            // 截断：prompt 保留，response 截断到剩余空间
-            let mut resp = response_ids;
-            let budget = max_length.saturating_sub(prompt_ids.len());
-            if resp.len() > budget {
-                resp.truncate(budget);
-            }
-            if resp.is_empty() {
-                continue;
-            }
-
+            anyhow::ensure!(!item.output.trim().is_empty(), "empty reward target");
+            anyhow::ensure!(
+                !prompt_ids.is_empty() && prompt_ids.len() < max_length,
+                "RL prompt exhausts context"
+            );
+            let question = if input_content.is_empty() {
+                item.instruction
+            } else {
+                format!("{}\n{}", item.instruction, input_content)
+            };
             data.push(GRPOItem {
-                instruction: item.instruction,
+                answer: item.output,
+                instruction: question,
                 prompt: prompt_ids,
-                response: resp,
             });
         }
 
@@ -288,8 +264,12 @@ impl GRPODataset {
 }
 
 impl Dataset<GRPOItem> for GRPODataset {
-    fn get(&self, index: usize) -> Option<GRPOItem> {
-        self.data.get(index).cloned()
+    fn get(&self, index: usize) -> Result<GRPOItem, DatasetError> {
+        self.data
+            .as_slice()
+            .get(index)
+            .cloned()
+            .ok_or_else(|| DatasetError::new(std::io::Error::other("invalid dataset index")))
     }
 
     fn len(&self) -> usize {

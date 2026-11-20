@@ -8,4 +8,10 @@ pub mod train;
 // 重新导出常用类型
 pub use data::MetaITokenizer;
 pub use infer::Generator;
-pub use model::{MetaIConfig, MetaIModel};
+pub use model::{
+    AttentionVariant, MetaIConfig, MetaIModel, MlaConfig, NormVariant, RouterVariant,
+    SparseAttentionConfig,
+};
+
+pub mod decision;
+pub mod labs;

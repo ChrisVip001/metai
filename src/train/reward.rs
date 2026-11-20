@@ -6,7 +6,6 @@
 //!
 //! 所有规则函数均为纯 CPU 实现，便于单元测试；`RewardModel` trait 提供 Tensor 包装以接入训练。
 
-use burn::tensor::backend::Backend;
 use burn::tensor::Tensor;
 
 /// 从文本中提取第一个数字（支持负数、小数、`\boxed{...}`、中文"答案：X"格式）
@@ -20,7 +19,14 @@ pub fn extract_number(text: &str) -> Option<f64> {
         }
     }
     // 中文答案
-    for marker in ["答案：", "答案:", "答案是", "answer is", "Answer:", "ANSWER:"] {
+    for marker in [
+        "答案：",
+        "答案:",
+        "答案是",
+        "answer is",
+        "Answer:",
+        "ANSWER:",
+    ] {
         if let Some(idx) = text.find(marker) {
             let tail = &text[idx + marker.len()..];
             if let Some(n) = parse_plain_number(tail) {
@@ -36,7 +42,8 @@ fn parse_plain_number(s: &str) -> Option<f64> {
     let mut i = 0;
     while i < bytes.len() {
         let c = bytes[i];
-        let is_sign = (c == '-' || c == '+') && i + 1 < bytes.len() && bytes[i + 1].is_ascii_digit();
+        let is_sign =
+            (c == '-' || c == '+') && i + 1 < bytes.len() && bytes[i + 1].is_ascii_digit();
         let is_digit = c.is_ascii_digit()
             || (c == '.'
                 && i + 1 < bytes.len()
@@ -75,7 +82,7 @@ pub fn answer_match_score(instruction: &str, response: &str) -> f32 {
             }
         }
         (Some(_), None) => 0.0, // 指令要求答案但 response 没给数字
-        (None, _) => 0.5,      // 指令没有明确答案，只能给中等分
+        (None, _) => 0.5,       // 指令没有明确答案，只能给中等分
     }
 }
 
@@ -144,7 +151,7 @@ pub fn score_batch(
     min_len: usize,
     max_len: usize,
 ) -> Vec<f32> {
-    let mut out = Vec::with_capacity(responses.len() * responses[0].len());
+    let mut out = Vec::new();
     for (ins, group) in instructions.iter().zip(responses.iter()) {
         for r in group {
             out.push(kind.score(ins, r, min_len, max_len));
@@ -156,11 +163,16 @@ pub fn score_batch(
 // ===== Tensor 接口（向后兼容的 RewardModel trait） =====
 
 /// 基础奖励函数接口
-pub trait RewardModel<B: Backend> {
+pub trait RewardModel {
     /// 为一组生成的 Response 计算奖励值
     /// responses: Vec<String>
     /// 返回: [GroupSize] 的奖励 Tensor
-    fn score(&self, instruction: &str, responses: &[String], device: &B::Device) -> Tensor<B, 1>;
+    fn score(
+        &self,
+        instruction: &str,
+        responses: &[String],
+        device: &burn::tensor::Device,
+    ) -> Tensor<1>;
 }
 
 /// 基于规则的奖励函数（数学验证 + 格式）
@@ -186,11 +198,19 @@ impl Default for RuleReward {
     }
 }
 
-impl<B: Backend> RewardModel<B> for RuleReward {
-    fn score(&self, instruction: &str, responses: &[String], device: &B::Device) -> Tensor<B, 1> {
+impl RewardModel for RuleReward {
+    fn score(
+        &self,
+        instruction: &str,
+        responses: &[String],
+        device: &burn::tensor::Device,
+    ) -> Tensor<1> {
         let scores: Vec<f32> = responses
             .iter()
-            .map(|resp| self.kind.score(instruction, resp, self.min_len, self.max_len))
+            .map(|resp| {
+                self.kind
+                    .score(instruction, resp, self.min_len, self.max_len)
+            })
             .collect();
         Tensor::from_floats(scores.as_slice(), device)
     }
@@ -213,18 +233,9 @@ mod tests {
 
     #[test]
     fn test_answer_match() {
-        assert_eq!(
-            answer_match_score("计算 2+3，答案：5", "结果是 5"),
-            1.0
-        );
-        assert_eq!(
-            answer_match_score("计算 2+3，答案：5", "结果是 6"),
-            0.0
-        );
-        assert_eq!(
-            answer_match_score("计算 2+3，答案：5", "没有给出数字"),
-            0.0
-        );
+        assert_eq!(answer_match_score("计算 2+3，答案：5", "结果是 5"), 1.0);
+        assert_eq!(answer_match_score("计算 2+3，答案：5", "结果是 6"), 0.0);
+        assert_eq!(answer_match_score("计算 2+3，答案：5", "没有给出数字"), 0.0);
     }
 
     #[test]
