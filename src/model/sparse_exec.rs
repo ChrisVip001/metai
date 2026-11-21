@@ -17,7 +17,7 @@
 //!
 //! 其中 \(L \le (n\_rep\cdot k)\cdot bs + \text{window}\)（组内并集，未去重的
 //! 最坏上界），相比 dense 解码的 \(O(S\_kv)\) 打分 / softmax / 加权，物理计算
-//! 量降到 \(O(L)\)——即 ARCHITECTURE_TIMELINE §9 的 **kernel 位（gather 版）**。
+//! 量降到 \(O(L)\)——即 紧凑 KV 读取的 gather 路径。
 //!
 //! ## 数据源：全量拼接 vs 页读取（两个入口）
 //!

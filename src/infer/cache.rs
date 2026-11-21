@@ -11,7 +11,7 @@
 //!   供位置打分，数据量为全量 K 的 \(1/\text{page}\)）。
 //!
 //! 稀疏解码（`sparse_exec.rs` 的页路径）即由后两个原语组成数据流，从而
-//! 消除每步 `get_full` 的 \(O(S\_kv)\) 拷贝 —— 见 ARCHITECTURE_TIMELINE
+//! 消除每步 `get_full` 的 \(O(S\_kv)\) 拷贝 —— 见 docs/INDUSTRIAL.zh-CN.md
 //! 「页读取」位。三者都从 `blocks` **现算**（不缓存中间状态），因此
 //! `truncate` / `clear` 之后自动保持一致。
 //!

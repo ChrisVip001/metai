@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// DeepSeek-V2 生产值参考：`kv_lora_rank = 512`，`qk_rope_head_dim = 64`
 /// （头内分 nope / rope 两段，本仓库以「吸收式 + 共享 rope」等价落地，
-/// 文档见 `docs/ARCHITECTURE_TIMELINE.md`）。
+/// 文档见 `docs/INDUSTRIAL.zh-CN.md`）。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MlaConfig {
     /// 压缩 latent 维度（cache 中每 token 的主体存储宽度）。
@@ -204,7 +204,7 @@ impl MetaIConfig {
             // V3.2 采用 sigmoid 无 softmax 路由 + bias 均衡（DeepSeek-V3 风格）
             router: RouterVariant::SigmoidTopK,
             // V3.2 标配 DSA 稀疏注意力；此处默认仍 dense，
-            // 显式设置后走本仓库的稀疏 mask 位（见 docs/ARCHITECTURE_TIMELINE.md）。
+            // 显式设置后走本仓库的稀疏 mask 位（见 docs/INDUSTRIAL.zh-CN.md）。
             // 注意稀疏位当前仅与 Gqa 组合（见 attn 字段注释）。
             sparse: None,
             // MLA：KV 低秩 latent 压缩 + 解耦 RoPE（DeepSeek-V2 尺寸；

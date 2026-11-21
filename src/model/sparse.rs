@@ -27,7 +27,7 @@
 //! 只能看到 top-k 块 ∪ 窗口内的键）与 NSA/MoBA/DSA 完全一致，scores 被
 //! `-inf` 屏蔽到这些位置。复杂度与 naive SDPA 同为 \(O(S^2)\)——
 //! **物理省算**（只对被选块打分）依赖未来在 `cubecl` 层用本 mask/indices
-//! 实现 Flash 风格 kernel（`docs/ARCHITECTURE_TIMELINE.md` §9 已列为 kernel 位）。
+//! 实现 Flash 风格 kernel（`docs/INDUSTRIAL.zh-CN.md` 记录实现范围）。
 //! mask 语义与 kernel 一一对应：训练时即可跑通稀疏注意力（forward/backward
 //! 全支持），权重/结构零迁移成本。
 //!
@@ -54,7 +54,7 @@
 //!   （带权重的块代表，训练时端到端学习）；
 //! - 块得分 = 原始 q·k 内积（未缩放），Top-k 次序与 \(\sqrt{d}\) 缩放无关；
 //! - 真实 kernel 位可把「mask 真位置」等价为「gather 索引」，省掉被屏蔽
-//!   位置的打分，见模块 doc 与 ARCHITECTURE_TIMELINE.md。
+//!   位置的打分，见模块 doc 与 docs/INDUSTRIAL.zh-CN.md。
 //!
 //! ## 形状约束
 //!

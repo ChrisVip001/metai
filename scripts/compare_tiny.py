@@ -9,7 +9,6 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-TINY = ROOT / "examples" / "tiny"
 # Complete noun groups are assigned before pairing each noun with both colors.
 NOUNS = {
     "train": "apple sky rose sea flower ink stone chair shirt balloon leaf drum book kite bowl wagon",
@@ -140,6 +139,7 @@ def av_eval(binary, model, inputs, gold, limit, eos):
 def run(course, out, development):
     course = course.resolve()
     out = out.resolve()
+    fixtures = course / "fixtures"
     source = json.loads((course / "run.json").read_text())
     for name in ("sft", "decision", "audiovisual"):
         if not any(s["name"] == name and s["exit_code"] == 0 for s in source["stages"]):
@@ -223,7 +223,11 @@ def run(course, out, development):
     # Holdout labels are only consulted after the four checkpoints have been written.
     print(f"评估 {split} 集", flush=True)
     decision = read_rows(data / f"decision-{split}.jsonl")
-    historical = [row for p in TINY.glob("decision-*.jsonl") for row in read_rows(p)]
+    historical = [
+        row
+        for split in ("train", "cal", "test")
+        for row in read_rows(fixtures / f"decision-{split}.jsonl")
+    ]
     assert {r["text"] for r in historical}.isdisjoint(r["text"] for r in decision)
     probes = [dict(text=f"{c} cup", label=c) for c in ["red", "blue"]]
     for method, model in [
@@ -237,7 +241,7 @@ def run(course, out, development):
         report["decision"][method] = scores
 
     av = read_rows(data / f"av-{split}.jsonl")
-    old_av = read_rows(TINY / "audiovisual.jsonl")
+    old_av = read_rows(fixtures / "audiovisual.jsonl")
     for field in ("image", "audio"):
         assert {tuple(row[field]) for row in av}.isdisjoint(tuple(row[field]) for row in old_av)
     inputs = data / f"av-{split}-inputs.jsonl"

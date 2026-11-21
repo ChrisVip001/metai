@@ -34,11 +34,25 @@ fn pretrain_resume_and_posttrain_checkpoints() -> Result<()> {
         "red is red\nblue is blue\none plus one\ntwo plus two\n",
     )?;
     std::fs::write(root.join("valid"), "red and blue\n")?;
-    std::fs::write(root.join("sft"), include_str!("../examples/tiny/sft.jsonl"))?;
-    std::fs::write(
-        root.join("pairs"),
-        include_str!("../examples/tiny/preferences.jsonl"),
-    )?;
+    let mut sft = String::new();
+    let mut pairs = String::new();
+    for a in 1..=2 {
+        for b in 1..=2 {
+            let row = serde_json::json!({
+                "instruction": format!("{a}+{b}?"),
+                "output": (a + b).to_string(),
+            });
+            sft.push_str(&format!("{row}\n"));
+        }
+        let row = serde_json::json!({
+            "instruction": format!("{a}+{a}?"),
+            "chosen": (2 * a).to_string(),
+            "rejected": (2 * a + 5).to_string(),
+        });
+        pairs.push_str(&format!("{row}\n"));
+    }
+    std::fs::write(root.join("sft"), sft)?;
+    std::fs::write(root.join("pairs"), pairs)?;
     cli(
         root,
         &[
